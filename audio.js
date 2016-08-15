@@ -87,7 +87,7 @@ var mySong = document.querySelector("#au");
 // source.start()
 
 // wavesurfer.load('../AudioProject/TrapQueen.wav')
-wavesurfer.load('..WaveRacer.mp3')
+wavesurfer.load('WaveRacer.mp3')
 // wavesurfer.load('http://www.stephaniequinn.com/Music/Allegro%20from%20Duet%20in%20C%20Major.mp3')
 
 var gainNode;
