@@ -48,7 +48,7 @@ var wavesurferLeft = WaveSurfer.create({
 console.log("CREATED WS INSTANCE");
 console.log(wavesurferLeft)
 // LOAD INITIAL AUDIO TRACK
-wavesurferLeft.load('../AudioProject/WaveRacer.mp3')
+wavesurferLeft.load('Wave_Racer_Streamer.mp3')
 
 // DEFINE LEFT DECK VARIABLES
 var gainNodeL,
