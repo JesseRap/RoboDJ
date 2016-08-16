@@ -3,8 +3,9 @@
 var leftIsRunning = false,
     rightIsRunning = false;
 
-// SET EVENT HANDLER FOR PLAY/PAUSE BUTTON
+// SET EVENT HANDLER FOR PLAY/PAUSE BUTTONS
 $("#playButton").on("click", playPauseLeft)
+$("#playButtonR").on("click", playPauseRight)
 
 function play(ws) {
     // START THE DECK
@@ -30,7 +31,7 @@ function playPauseRight() {
         rightIsRunning = false
         stop(wavesurferRight)
     } else {
-        rightIsRunning = false
+        rightIsRunning = true
         play(wavesurferRight)
     }
 }
@@ -60,6 +61,23 @@ var gainNodeL,
     bufferL,
     RMS_ArrayL = [],
     rms_step = 2.5;
+
+
+var wavesurferRight = WaveSurfer.create({
+    container: '#waveformR',
+});
+
+// DEFINE RIGHT DECK VARIABLES
+var gainNodeR,
+    analyserR,
+    dataArrayR,
+    canvasR = document.querySelector('#canvasRight'),
+    canvasCtxR = canvasR.getContext("2d"),
+    bufferLengthR,
+    bufferR,
+    RMS_ArrayR = [];
+
+wavesurferRight.load("Hi_Tom_Summer_Plants.mp3")
 
 
 
@@ -101,49 +119,55 @@ function draw() {
 };
 
 
-function isReady(ws) {
+function isReady(ws, gainNode, bufferLength, dataArray, buffer, rms_array) {
     // HELPER FUNCTION FOR DECK-IS-READY
     var context = ws.backend.ac
     console.log(ws.backend)
     console.log(context)
-    gainNodeL = context.createGain();
-    console.log(gainNodeL)
+    gainNode = context.createGain();
+    console.log(gainNode)
     console.log(ws.backend.source)
-    ws.backend.setFilter(gainNodeL)
+    ws.backend.setFilter(gainNode)
     
     analyser = context.createAnalyser();
 
-    gainNodeL.connect(analyser)
+    gainNode.connect(analyser)
 
-    bufferLengthL = analyser.frequencyBinCount;
-    console.log(bufferLengthL);
+    bufferLength = analyser.frequencyBinCount;
+    console.log(bufferLength);
     
-    dataArrayL = new Uint8Array(bufferLengthL);
-    analyser.getByteTimeDomainData(dataArrayL);
-    bufferL = new Uint8Array(analyser.fftSize);
+    dataArray = new Uint8Array(bufferLength);
+    analyser.getByteTimeDomainData(dataArray);
+    buffer = new Uint8Array(analyser.fftSize);
 
-    console.log(bufferLengthL)
-    draw();
-    getRMS(ws);
-    console.log("HERE")
-    console.log(ws)
+    console.log(bufferLength)
+
+    getRMS(ws, rms_array);
     if (ws === wavesurferLeft) {
+        // draw()
         drawGraphL();
     } else {
-        
+        drawGraphR();
     }
 }
 
 wavesurferLeft.on('ready', function () {
     // ACTION ONCE THE TRACK IS LOADED INTO WAVESURFER INSTANCE
-    console.log("WHAT")
+    console.log("Wavesurfer LEFT")
     console.log(wavesurferLeft)
-    isReady(wavesurferLeft)
+    isReady(wavesurferLeft, gainNodeL, bufferLengthL, dataArrayL, bufferL, RMS_ArrayL)
+});
+
+wavesurferRight.on('ready', function () {
+    // ACTION ONCE THE TRACK IS LOADED INTO WAVESURFER INSTANCE
+    console.log("Wavesurfer RIGHT")
+    console.log(wavesurferRight)
+    isReady(wavesurferRight, gainNodeR, bufferLengthR, dataArrayR, bufferR, RMS_ArrayR)
 });
 
 
 
-function getRMS(ws) {
+function getRMS(ws, rms_array) {
     // Calculate the RMS of each nms_step interval
     var rms = 0;
     var n = 0;
@@ -155,7 +179,7 @@ function getRMS(ws) {
             rms /= ws.backend.source.buffer.length;
             rms = Math.sqrt(rms);
             // console.log("RMS ", n, i, 20*Math.log10(Math.abs(rms)))
-            RMS_ArrayL.push( [i / 44100, 20*Math.log10(Math.abs(rms))] )
+            rms_array.push( [i / 44100, 20*Math.log10(Math.abs(rms))] )
             rms = 0
             n++
         }
@@ -170,20 +194,39 @@ function changeVolumeLeft() {
     gainNodeL.gain.value = sliderValue / 100
 }
 
+function changeVolumeRight() {
+    // THE RIGHT VOLUME SLIDER
+    console.log("CHANGE")
+    var sliderValue = document.getElementById("VolSliderR").value
+    console.log(sliderValue)
+    gainNodeR.gain.value = sliderValue / 100
+}
+
 $('.form-group').on('click','input[type=radio]',function() {
     $(this).closest('.form-group').find('.radio-inline, .radio').removeClass('checked');
     $(this).closest('.radio-inline, .radio').addClass('checked');
 });
 
 document.querySelector("#VolSliderL").addEventListener("change", changeVolumeLeft)
+document.querySelector("#VolSliderR").addEventListener("change", changeVolumeRight)
 
 document.querySelector("#option-0").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load("Wave_Racer_Streamers.mp3");})
 document.querySelector("#option-1").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load("Hi_Tom_Summer_Plants.mp3");})
 document.querySelector("#option-2").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load("Hoodboi_By_Ur_Side.mp3");})
 
+document.querySelector("#option-0R").addEventListener("click", function() {clearGraphRight(); wavesurferRight.load("Wave_Racer_Streamers.mp3");})
+document.querySelector("#option-1R").addEventListener("click", function() {clearGraphRight(); wavesurferRight.load("Hi_Tom_Summer_Plants.mp3");})
+document.querySelector("#option-2R").addEventListener("click", function() {clearGraphRight(); wavesurferRight.load("Hoodboi_By_Ur_Side.mp3");})
+
 function clearGraphLeft() {
     RMS_ArrayL = [];
     var canvas = document.querySelector("#graphLeft")
+    canvas.width = canvas.width
+}
+
+function clearGraphRight() {
+    RMS_ArrayR = [];
+    var canvas = document.querySelector("#graphRight")
     canvas.width = canvas.width
 }
 
@@ -192,12 +235,18 @@ function clearGraphLeft() {
 function drawGraphL() {
     // Wrapper for drawing the left graph
     d = requestAnimationFrame(drawGraphL)
-    drawGraph(wavesurferLeft)
+    drawGraph(wavesurferLeft, document.querySelector("#graphLeft"), RMS_ArrayL)
+}
+
+function drawGraphR() {
+    // Wrapper for drawing the left graph
+    d = requestAnimationFrame(drawGraphR)
+    drawGraph(wavesurferRight, document.querySelector("#graphRight"), RMS_ArrayR)
 }
 
 
-function drawGraph(ws) {
-    var canvas = document.getElementById("graphLeft");
+function drawGraph(ws, canvas, rms_array) {
+    // var canvas = document.getElementById("graphLeft");
     var context = canvas.getContext("2d");
     
     for (var x = 0.5; x < canvas.width; x += canvas.width / (ws.backend.buffer.duration / rms_step) ) {
@@ -209,8 +258,8 @@ function drawGraph(ws) {
     context.stroke();
     
     context.beginPath();
-    for (var i=0; i<RMS_ArrayL.length; i++) {
-        var rms_pair = RMS_ArrayL[i]
+    for (var i=0; i<rms_array.length; i++) {
+        var rms_pair = rms_array[i]
         var scale = canvas.width / ws.backend.buffer.duration
         if (i == 0) {
             context.moveTo(scale * rms_pair[0], rms_pair[1]*-1)
@@ -225,7 +274,7 @@ function drawGraph(ws) {
     var currentTime = ws.backend.getCurrentTime();
     
     context.moveTo(currentTime * scale, 0);
-    context.lineTo(currentTime * scale, canvas.height)
+    context.lineTo(currentTime * scale, canvas.height);
     
     context.stroke()
     

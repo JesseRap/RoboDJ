@@ -72,8 +72,52 @@
             
             
             
-            <div class="col-sm-6 column" id="rightColumn" style="text-align:center; border: 1px solid blue">
-                <h2>DECK 2</h2>
+            <div class="col-sm-6 column" id="leftPlayer" style="text-align:center; border: 1px solid blue">
+                <h2>DECK 1</h2>
+                <table id="rightDeckTable" style="border: 1px solid red; margin: auto">
+                    <tr><td>
+                        
+                        <form id="testFormR" class="form-horizontal" method="post">
+                            <div class="form-group">
+                              <div class="col-md-4">
+                                <label class="radio" for="option-0R">
+                                  <input name="options" id="option-0R" value="1" type="radio">
+                                  Wave Racer - Streamer
+                                </label>
+                                <label class="radio" for="option-1R">
+                                  <input name="options" id="option-1R" value="2" type="radio" checked="checked">
+                                  Hi Tom - Summer Plants
+                                </label>
+                                <label class="radio" for="option-2R">
+                                  <input name="options" id="option-2R" value="3" type="radio">
+                                  Hoodboi - By Ur Side
+                                </label>
+                              </div>
+                            </div>
+                        </form>
+                        
+                        <!--
+                        <ul class="list-group">
+                            <li id="Streamer" role="presentation" class="list-group-item active"><button class="label">Wave Racer - Streamers</button></li>
+                            <li id="SummerPlants" role="presentation" class="list-group-item">Hi Tom - Summer Plants</li>
+                        </ul> -->
+                        
+                    </td></tr>
+                    <tr><td>
+                        <button id="playButtonR">Play/Pause</button>
+                    </td></tr>
+                    <tr><td>
+                        <input type="range" id="VolSliderR" value="100" style="width:50%; margin:auto">
+                    </td></tr>
+                    <tr><td>
+                        <div id="waveformR"></div>
+                        <canvas id="canvasRight" class="visualizer" style="width:50%"></canvas>
+                        <canvas id="graphRight" height="60" style="border:1px solid black; width:100%"></canvas>
+                        
+                    </td></tr>
+                </table>
+            
+            
             </div>
         </div>
     </div>
