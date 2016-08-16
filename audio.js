@@ -48,7 +48,7 @@ var wavesurferLeft = WaveSurfer.create({
 console.log("CREATED WS INSTANCE");
 console.log(wavesurferLeft)
 // LOAD INITIAL AUDIO TRACK
-wavesurferLeft.load('WaveRacer.mp3')
+wavesurferLeft.load('../AudioProject/WaveRacer.mp3')
 
 // DEFINE LEFT DECK VARIABLES
 var gainNodeL,
@@ -170,7 +170,16 @@ function changeVolumeLeft() {
     gainNodeL.gain.value = sliderValue / 100
 }
 
+$('.form-group').on('click','input[type=radio]',function() {
+    $(this).closest('.form-group').find('.radio-inline, .radio').removeClass('checked');
+    $(this).closest('.radio-inline, .radio').addClass('checked');
+});
+
 document.querySelector("#VolSliderL").addEventListener("change", changeVolumeLeft)
+
+document.querySelector("#option-0").addEventListener("click", function() {wavesurferLeft.load("Wave_Racer_Streamer.mp3");})
+document.querySelector("#option-1").addEventListener("click", function() {wavesurferLeft.load("Hi_Tom_Summer_Plants.mp3");})
+document.querySelector("#option-2").addEventListener("click", function() {wavesurferLeft.load("Hoodboi_By_Ur_Side.mp3");})
 
 
 
