@@ -1,0 +1,22 @@
+{
+  "name": "robo-dj",
+  "version": "1.0.0",
+  "description": "Automated DJ mix creator",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JesseRap/RoboDJ.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JesseRap/RoboDJ/issues"
+  },
+  "homepage": "https://github.com/JesseRap/RoboDJ#readme",
+  "dependencies": {
+    "wavesurfer.js": "^1.1.11"
+  }
+}
