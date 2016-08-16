@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/JesseRap/RoboDJ#readme",
   "dependencies": {
-    "wavesurfer.js": "^1.1.11"
+    "express": "^4.14.0",
+    "express-handlebars": "^3.0.0",
   }
 }
