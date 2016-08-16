@@ -48,7 +48,7 @@ var wavesurferLeft = WaveSurfer.create({
 console.log("CREATED WS INSTANCE");
 console.log(wavesurferLeft)
 // LOAD INITIAL AUDIO TRACK
-wavesurferLeft.load('Wave_Racer_Streamers.mp3')
+wavesurferLeft.load('../AudioProject/WaveRacer.mp3')
 
 // DEFINE LEFT DECK VARIABLES
 var gainNodeL,
@@ -177,9 +177,15 @@ $('.form-group').on('click','input[type=radio]',function() {
 
 document.querySelector("#VolSliderL").addEventListener("change", changeVolumeLeft)
 
-document.querySelector("#option-0").addEventListener("click", function() {wavesurferLeft.load("Wave_Racer_Streamer.mp3"); var canvas = document.querySelector("graphLeft"); canvas.width = canvas.width;})
-document.querySelector("#option-1").addEventListener("click", function() {wavesurferLeft.load("Hi_Tom_Summer_Plants.mp3");})
-document.querySelector("#option-2").addEventListener("click", function() {wavesurferLeft.load("Hoodboi_By_Ur_Side.mp3");})
+document.querySelector("#option-0").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load("Wave_Racer_Streamers.mp3");})
+document.querySelector("#option-1").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load("Hi_Tom_Summer_Plants.mp3");})
+document.querySelector("#option-2").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load("Hoodboi_By_Ur_Side.mp3");})
+
+function clearGraphLeft() {
+    RMS_ArrayL = [];
+    var canvas = document.querySelector("#graphLeft")
+    canvas.width = canvas.width
+}
 
 
 
