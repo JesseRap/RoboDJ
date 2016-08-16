@@ -16,7 +16,6 @@
     <div class="jumbotron">
         <div class="container-fluid" style="text-align:center">
             <h1 style="margin:auto">RoboDJ</h1>
-            <input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="0" data-slider-max="20" data-slider-step="1" data-slider-value="14"/>
         </div>
     </div>
     
@@ -26,10 +25,32 @@
                 <h2>DECK 1</h2>
                 <table id="leftDeckTable" style="border: 1px solid red; margin: auto">
                     <tr><td>
+                        
+                        <form id="testForm" class="form-horizontal" method="post">
+                            <div class="form-group">
+                              <div class="col-md-4">
+                                <label class="radio" for="option-0">
+                                  <input name="options" id="option-0" value="1" type="radio">
+                                  Wave Racer - Streamer
+                                </label>
+                                <label class="radio" for="option-1">
+                                  <input name="options" id="option-1" value="2" type="radio">
+                                  Hi Tom - Summer Plants
+                                </label>
+                                <label class="radio" for="option-2">
+                                  <input name="options" id="option-2" value="3" type="radio">
+                                  Hoodboi - By Ur Side
+                                </label>
+                              </div>
+                            </div>
+                        </form>
+                        
+                        <!--
                         <ul class="list-group">
-                            <li role="presentation" class="list-group-item active">Wave Racer - Streamers</li>
-                            <li role="presentation" class="list-group-item">Hi Tom - Summer Plants</li>
-                        </ul>
+                            <li id="Streamer" role="presentation" class="list-group-item active"><button class="label">Wave Racer - Streamers</button></li>
+                            <li id="SummerPlants" role="presentation" class="list-group-item">Hi Tom - Summer Plants</li>
+                        </ul> -->
+                        
                     </td></tr>
                     <tr><td>
                         <button id="playButton">Play/Pause</button>
@@ -56,7 +77,18 @@
             </div>
         </div>
     </div>
+    
+    <!--
+    <div><button id="playButton">Play</button></div>
+    <div><button id="stopButton">Stop</button></div>
+    <div><button id="sampleButton">Play Sample</button></div>
+    
+    <div id="waveform"></div>
 
+    <canvas class="visualizer"></canvas>
+    
+    <canvas id="graph" height="200" width="100%" style="border:1px solid black"></canvas>
+    -->
     
     <script src="audio.js"></script>
 </body>
