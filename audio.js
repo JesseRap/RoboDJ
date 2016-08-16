@@ -1,188 +1,91 @@
-// define variables
 
-var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-var source;
-var songLength;
+// THESE VARIABLES DEFINE WHETHER A DECK IS RUNNING
+var leftIsRunning = false,
+    rightIsRunning = false;
 
+// SET EVENT HANDLER FOR PLAY/PAUSE BUTTON
+$("#playButton").on("click", playPauseLeft)
 
-/*
-var pre = document.querySelector('pre');
-var myScript = document.querySelector('script');
-var play = document.querySelector('.play');
-var stop = document.querySelector('.stop');
-
-var playbackControl = document.querySelector('.playback-rate-control');
-var playbackValue = document.querySelector('.playback-rate-value');
-playbackControl.setAttribute('disabled', 'disabled');
-
-var loopstartControl = document.querySelector('.loopstart-control');
-var loopstartValue = document.querySelector('.loopstart-value');
-loopstartControl.setAttribute('disabled', 'disabled');
-
-var loopendControl = document.querySelector('.loopend-control');
-var loopendValue = document.querySelector('.loopend-value');
-loopendControl.setAttribute('disabled', 'disabled');
-*/
-// use XHR to load an audio track, and
-// decodeAudioData to decode it and stick it in a buffer.
-// Then we put the buffer into the source
-
-function getData() {
-  source = audioCtx.createBufferSource();
-  request = new XMLHttpRequest();
-
-  request.open('GET', 'http://localhost/~JRap/AudioProject/sax.mp3', true);
-
-  request.responseType = 'arraybuffer';
-
-
-  request.onload = function() {
-    var audioData = request.response;
-
-    audioCtx.decodeAudioData(audioData, function(buffer) {
-        myBuffer = buffer;
-        songLength = buffer.duration;
-        source.buffer = myBuffer;
-        source.playbackRate.value = 1.0
-        //source.playbackRate.value = playbackControl.value;
-        source.connect(audioCtx.destination);
-        //source.loop = true;
-
-        // loopstartControl.setAttribute('max', Math.floor(songLength));
-        // loopendControl.setAttribute('max', Math.floor(songLength));
-      },
-
-      function(e){"Error with decoding audio data" + e.err});
-
-  }
-
-  request.send();
-}
-
-$("#playButton").on("click", play)
-$("#stopButton").on("click", stop)
-
-function play() {
-    // getData()
-    // source.start(0);
-    wavesurfer.play()
-}
-
-function stop() {
-    wavesurfer.pause()
+function play(ws) {
+    // START THE DECK
+    ws.play()
 }
 
 
-var wavesurfer = WaveSurfer.create({
-    container: '#waveform',
-    // scrollParent: true
-});
 
-var mySong = document.querySelector("#au");
-// mySong.addEventListener("canplaythrough", g)
-
-// var source = wavesurfer.backend.ac.createMediaElementSource(mySong)
-// console.log(source)
-// source.connect(wavesurfer.backend.ac.destination)
-// source.start()
-
-// wavesurfer.load('../AudioProject/TrapQueen.wav')
-wavesurfer.load('WaveRacer.mp3')
-// wavesurfer.load('http://www.stephaniequinn.com/Music/Allegro%20from%20Duet%20in%20C%20Major.mp3')
-
-var gainNode;
-var analyser;
-var dataArray;
-var canvas = document.querySelector('.visualizer');
-console.log(canvas)
-var canvasCtx = canvas.getContext("2d");
-var bufferLength;
-var bufferLength2;
-var buffer;
-var floatBuffer;
-var floatArray;
-var RMS_Array = []
-var rms_step = 2.5
-
-function f2() {
-    result = []
-    
-    analyser.getByteTimeDomainData(buffer);
-    /*
-    for (var sec = 0; sec < buffer.length; sec += (wavesurfer.backend.ac.sampleRate * 30)) {
-        console.log("section ",sec)
-        var rms = 0;
-        for (var i = sec; i < sec + (wavesurfer.backend.ac.sampleRate * 30); i++) {
-            // console.log(i)
-            try {
-                rms += buffer[i] * buffer[i];
-            } catch (e) {
-                console.log("ERROR")
-            }
-            if (i%1000 == 0) {
-                console.log(i, buffer[i])
-            }
-        }
-        rms /= wavesurfer.backend.ac.sampleRate * 30
-        rms = Math.sqrt(rms);
-        // requestAnimationFrame(f);
-        console.log(rms)
-        result.push(rms)
-    
-    } */
-    
-    var rms = 0;
-    for (var i = 0; i < buffer.length; i++) {
-        rms += buffer[i] * buffer[i];
+function playPauseLeft() {
+    // PLAY/PAUSE THE LEFT DECK
+    if (leftIsRunning) {
+        leftIsRunning = false
+        stop(wavesurferLeft)
+    } else {
+        leftIsRunning = true
+        play(wavesurferLeft)
     }
-
-    rms /= wavesurfer.backend.ac.sampleRate * 30
-    rms = Math.sqrt(rms);
-    // requestAnimationFrame(f);
-    console.log(rms)
-    // result.push(rms)
-    // console.log(result)
-  
 }
 
-function f() {
-    
-  analyser.getByteTimeDomainData(buffer);
-  var rms = 0;
-  for (var i = 0; i < bufferLength; i++) {
-    rms += buffer[i] * buffer[i];
-      //if (i % 100 == 0) {
-          // console.log(buffer[i])
-          // console.log(i, rms)
-      //}
-  }
-  rms /= bufferLength;
-  rms = Math.sqrt(rms);
-  // requestAnimationFrame(f);
-  console.log(rms)
+function playPauseRight() {
+    // PLAY/PAUSE THE RIGHT DECK
+    if (rightIsRunning) {
+        rightIsRunning = false
+        stop(wavesurferRight)
+    } else {
+        rightIsRunning = false
+        play(wavesurferRight)
+    }
 }
+
+function stop(ws) {
+    // STOP THE DECK
+    ws.pause()
+}
+
+
+// CREATE LEFT DECK WAVESURFER INSTANCE
+var wavesurferLeft = WaveSurfer.create({
+    container: '#waveformL',
+});
+console.log("CREATED WS INSTANCE");
+console.log(wavesurferLeft)
+// LOAD INITIAL AUDIO TRACK
+wavesurferLeft.load('WaveRacer.mp3')
+
+// DEFINE LEFT DECK VARIABLES
+var gainNodeL,
+    analyserL,
+    dataArrayL,
+    canvasL = document.querySelector('#canvasLeft'),
+    canvasCtxL = canvasL.getContext("2d"),
+    bufferLengthL,
+    bufferL,
+    RMS_ArrayL = [],
+    rms_step = 2.5;
+
+
 
 function draw() {
+    // DRAW THE OSCILLOSCOPE
 
     drawVisual = requestAnimationFrame(draw);
 
-    analyser.getByteTimeDomainData(dataArray);
+    analyser.getByteTimeDomainData(dataArrayL);
+    canvasCtx = canvasCtxL
 
     canvasCtx.fillStyle = 'rgb(200, 200, 200)';
-    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+    canvasCtx.fillRect(0, 0, canvasL.width, canvasL.height);
 
     canvasCtx.lineWidth = 2;
     canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
 
     canvasCtx.beginPath();
 
-    var sliceWidth = canvas.width * 1.0 / bufferLength;
+    var sliceWidth = canvasL.width * 1.0 / bufferLengthL;
     var x = 0;
 
-    for(var i = 0; i < bufferLength; i++) {
+    for(var i = 0; i < bufferLengthL; i++) {
 
-        var v = dataArray[i] / 128.0;
-        var y = v * canvas.height/2;
+        var v = dataArrayL[i] / 128.0;
+        var y = v * canvasL.height/2;
 
         if(i === 0) {
           canvasCtx.moveTo(x, y);
@@ -193,224 +96,96 @@ function draw() {
         x += sliceWidth;
     }
 
-    canvasCtx.lineTo(canvas.width, canvas.height/2);
+    canvasCtx.lineTo(canvasL.width, canvasL.height/2);
     canvasCtx.stroke();
 };
 
-function drawProgress() {
-    draw1 = requestAnimationFrame(drawProgress);
-    var currentTime = wavesurfer.backend.getCurrentTime()
-}
 
-wavesurfer.on('ready', function () {
-    // wavesurfer.play();
-    // var source = wavesurfer.backend.ac.createMediaElementSource(mySong)
-
-    var context = wavesurfer.backend.ac
-    console.log(wavesurfer.backend)
+function isReady(ws) {
+    // HELPER FUNCTION FOR DECK-IS-READY
+    var context = ws.backend.ac
+    console.log(ws.backend)
     console.log(context)
-    gainNode = context.createGain();
-    console.log(gainNode)
-    console.log(wavesurfer.backend.source)
-    wavesurfer.backend.setFilter(gainNode)
-    // Connect the gain node to the destination.
-    // gainNode.connect(context.destination);
+    gainNodeL = context.createGain();
+    console.log(gainNodeL)
+    console.log(ws.backend.source)
+    ws.backend.setFilter(gainNodeL)
     
     analyser = context.createAnalyser();
-    // analyser2 = context.createAnalyser();
-    // wavesurfer.backend.source.connect(analyser)
-    // wavesurfer.backend.analyser = analyser
-    gainNode.connect(analyser)
-    // gainNode.connect(analyser2)
-    // analyser2.fftSize = 256;
-    bufferLength = analyser.frequencyBinCount;
-    // bufferLength2 = analyser2.frequencyBinCount;
-    console.log(bufferLength);
-    // console.log(bufferLength2);
-    // floatArray = new Float32Array(bufferLength2);
-    // console.log(typeof(floatArray))
+
+    gainNodeL.connect(analyser)
+
+    bufferLengthL = analyser.frequencyBinCount;
+    console.log(bufferLengthL);
     
-    
-    //bufferLength = analyser.frequencyBinCount;
-    dataArray = new Uint8Array(bufferLength);
-    analyser.getByteTimeDomainData(dataArray);
-    // dataArray = dataArray.slice(0, dataArray.length/100)
-    console.log("HERE")
-    buffer = new Uint8Array(analyser.fftSize);
-    // floatBuffer = new Float32Array(bufferLength)
-    // analyser.getFloatFrequencyData(floatBuffer)
-    console.log(bufferLength)
+    dataArrayL = new Uint8Array(bufferLengthL);
+    analyser.getByteTimeDomainData(dataArrayL);
+    bufferL = new Uint8Array(analyser.fftSize);
+
+    console.log(bufferLengthL)
     draw();
-    getRMS();
-    drawGraph();
-    // requestAnimationFrame(f)
-    
+    getRMS(ws);
+    console.log("HERE")
+    console.log(ws)
+    if (ws === wavesurferLeft) {
+        drawGraphL();
+    } else {
+        
+    }
+}
+
+wavesurferLeft.on('ready', function () {
+    // ACTION ONCE THE TRACK IS LOADED INTO WAVESURFER INSTANCE
+    console.log("WHAT")
+    console.log(wavesurferLeft)
+    isReady(wavesurferLeft)
 });
 
-function playSample() {
-    
-    //analyser.getByteTimeDomainData(dataArray);
-    
-    /*
-    rms = 0 
-    for(var i = 0; i < bufferLength2; i++) {
-        rms += floatArray[i] * floatArray[i]
-        if (i % 2 == 0) {
-            console.log(i, floatArray[i]+ 140)
-        }
-    }
-    rms /= bufferLength2;
-    rms = Math.sqrt(rms);
-    console.log(rms)
-    */
-    
-    // Stereo
-    var channels = 2;
-
-    var frameCount = wavesurfer.backend.ac.sampleRate * 5.0;
-    console.log(frameCount)
-    
-    var myArrayBuffer = wavesurfer.backend.ac.createBuffer(channels, frameCount, wavesurfer.backend.ac.sampleRate);
-    console.log(myArrayBuffer)
-    // console.log(floatArray)
-    
-    var rms = 0;
-    
-    // Get a sample from the middle of the track
-    for (var ch = 0; ch < channels; ch++) {
-        var nowBuffering = myArrayBuffer.getChannelData(ch);
-        // var ca = new Float32Array;
-        var c = wavesurfer.backend.source.buffer.getChannelData(ch);
-        // var n = dataArray.getChannelData(ch);
-        j = 44100 * Math.floor(wavesurfer.backend.source.buffer.duration/2)
-        for (var i=0; i < frameCount; i++) {
-            nowBuffering[i] = c[i + 3748500]
-            // nowBuffering[i] = c[i+ j]
-            
-            rms += nowBuffering[i] * nowBuffering[i]
-            
-            if (i % 1000000 == 0) {
-                console.log(i, rms)
-            }
-            /*
-            rms += nowBuffering[i] * nowBuffering[i];
-            rms /= nowBuffering.length;
-            rms = Math.sqrt(rms);
-            */
-        }
-        rms /= nowBuffering.length;
-        rms = Math.sqrt(rms);
-    }
-    // 20*Math.log10(Math.abs(0.5))
-    console.log("RMS ", rms, 20*Math.log10(Math.abs(rms)))
-    
-    
-    // Calculate the RMS of each 5 second interval
-    var rms2 = 0;
-    var n = 0;
-    var c = wavesurfer.backend.source.buffer.getChannelData(0);
-
-    for (var i=0; i < wavesurfer.backend.source.buffer.length; i++) {
-        rms2 += c[i] * c[i]
-        if (i % (44100 * rms_step) == 0) {
-            rms2 /= nowBuffering.length;
-            rms2 = Math.sqrt(rms2);
-            console.log("RMS2 ", n, i, 20*Math.log10(Math.abs(rms2)))
-            RMS_Array.push( [i / 44100, 20*Math.log10(Math.abs(rms2))] )
-            rms2 = 0
-            n++
-        }
-    }
-    
-    // Get an AudioBufferSourceNode.
-    // This is the AudioNode to use when we want to play an AudioBuffer
-    var source = wavesurfer.backend.ac.createBufferSource();
-    // set the buffer in the AudioBufferSourceNode
-    source.buffer = myArrayBuffer;
-    // connect the AudioBufferSourceNode to the
-    // destination so we can hear the sound
-    source.connect(gainNode);
-    // start the source playing
-    source.start();
-    drawGraph()
-
-}
-
-document.querySelector("#sampleButton").onclick = playSample
 
 
-
-
-/*
-var an = ac.createAnalyser();
-source.connect(an);
-// Get an array that will hold our values
-var buffer = new Uint8Array(an.fftSize);
-
-function f() {
-  var rms = 0;
-  for (var i = 0; i < buffer.length; i++) {
-    rms += buffer[i] * buffer[i];
-  }
-  rms /= buffer.length;
-  rms = Math.sqrt(rms);
-  // rms now has the value we want.
-  requestAnimationFrame(f);
-}
-
-requestAnimationFrame(f);
-// start our hypothetical source.
-source.start(0);
-*/
-
-
-function getRMS() {
+function getRMS(ws) {
     // Calculate the RMS of each nms_step interval
-    var rms2 = 0;
+    var rms = 0;
     var n = 0;
-    var c = wavesurfer.backend.source.buffer.getChannelData(0);
+    var c = ws.backend.source.buffer.getChannelData(0);
 
     for (var i=0; i < c.length; i++) {
-        rms2 += c[i] * c[i]
+        rms += c[i] * c[i]
         if (i % (44100 * rms_step) == 0) {
-            rms2 /= wavesurfer.backend.source.buffer.length;
-            rms2 = Math.sqrt(rms2);
-            console.log("RMS2 ", n, i, 20*Math.log10(Math.abs(rms2)))
-            RMS_Array.push( [i / 44100, 20*Math.log10(Math.abs(rms2))] )
-            rms2 = 0
+            rms /= ws.backend.source.buffer.length;
+            rms = Math.sqrt(rms);
+            // console.log("RMS ", n, i, 20*Math.log10(Math.abs(rms)))
+            RMS_ArrayL.push( [i / 44100, 20*Math.log10(Math.abs(rms))] )
+            rms = 0
             n++
         }
     }
 }
 
-function changeVolume() {
+function changeVolumeLeft() {
+    // THE LEFT VOLUME SLIDER
     console.log("CHANGE")
-    var sliderValue = document.getElementById("volumeSlider").value
+    var sliderValue = document.getElementById("VolSliderL").value
     console.log(sliderValue)
-    gainNode.gain.value = sliderValue / 100
-    console.log(gainNode.gain.value / 100)
+    gainNodeL.gain.value = sliderValue / 100
 }
 
-var x = document.createElement("INPUT");
-x.setAttribute("type", "range");
-x.setAttribute("id", "volumeSlider")
-x.value = 100
-x.setAttribute("style", "width:200px")
-document.body.appendChild(x)
-x.addEventListener("change", changeVolume)
+document.querySelector("#VolSliderL").addEventListener("change", changeVolumeLeft)
 
-document.getElementById("graph").width = window.innerWidth
 
-function drawGraph() {
-    d = requestAnimationFrame(drawGraph)
-    var canvas = document.getElementById("graph");
+
+function drawGraphL() {
+    // Wrapper for drawing the left graph
+    d = requestAnimationFrame(drawGraphL)
+    drawGraph(wavesurferLeft)
+}
+
+
+function drawGraph(ws) {
+    var canvas = document.getElementById("graphLeft");
     var context = canvas.getContext("2d");
-    context.canvas.width = window.innerWidth
-    // context.fillRect(50, 25, 150, 100);
-    // Resets the canvas to blank default
-    // canvas.width = canvas.width
     
-    for (var x = 0.5; x < canvas.width; x += canvas.width / (wavesurfer.backend.buffer.duration / rms_step) ) {
+    for (var x = 0.5; x < canvas.width; x += canvas.width / (ws.backend.buffer.duration / rms_step) ) {
         context.moveTo(x, 0);
         context.lineTo(x, canvas.height);
     }
@@ -419,21 +194,20 @@ function drawGraph() {
     context.stroke();
     
     context.beginPath();
-    for (var i=0; i<RMS_Array.length; i++) {
-        var rms_pair = RMS_Array[i]
-        // console.log(rms_pair)
-        var scale = canvas.width / wavesurfer.backend.buffer.duration
+    for (var i=0; i<RMS_ArrayL.length; i++) {
+        var rms_pair = RMS_ArrayL[i]
+        var scale = canvas.width / ws.backend.buffer.duration
         if (i == 0) {
-            context.moveTo(scale * rms_pair[0], rms_pair[1]*-4)
+            context.moveTo(scale * rms_pair[0], rms_pair[1]*-1)
         } else {
-            context.lineTo(scale * rms_pair[0], rms_pair[1]*-4)
+            context.lineTo(scale * rms_pair[0], rms_pair[1]*-1)
         }
     }
     context.strokeStyle = "#000";
     context.stroke();
     
     context.beginPath();
-    var currentTime = wavesurfer.backend.getCurrentTime();
+    var currentTime = ws.backend.getCurrentTime();
     
     context.moveTo(currentTime * scale, 0);
     context.lineTo(currentTime * scale, canvas.height)
@@ -441,23 +215,6 @@ function drawGraph() {
     context.stroke()
     
 }
-
-
-
-
-// Create a gain node.
-
-
-
-// Connect the source to the gain node.
-// console.log(gainNode)
-// wavesurfer.backend.source.connect(gainNode);
-// Connect the gain node to the destination.
-// gainNode.connect(context.destination);
-
-// wire up buttons to stop and play audio, and range slider control
-
-
 
 
 /*
@@ -497,3 +254,114 @@ loopendControl.oninput = function() {
 // dump script to pre element
 
 // pre.innerHTML = myScript.innerHTML;
+
+
+
+
+/*
+function playSample() {
+    // FUNCTION TO PLAY A SAMPLE FROM THE TRACK (for testing)
+    
+    // Stereo
+    var channels = 2;
+
+    var frameCount = wavesurfer.backend.ac.sampleRate * 5.0;
+    console.log(frameCount)
+    
+    var myArrayBuffer = wavesurfer.backend.ac.createBuffer(channels, frameCount, wavesurfer.backend.ac.sampleRate);
+    console.log(myArrayBuffer)
+    // console.log(floatArray)
+    
+    var rms = 0;
+    
+    // Get a sample from the middle of the track
+    for (var ch = 0; ch < channels; ch++) {
+        var nowBuffering = myArrayBuffer.getChannelData(ch);
+        // var ca = new Float32Array;
+        var c = wavesurfer.backend.source.buffer.getChannelData(ch);
+        // var n = dataArray.getChannelData(ch);
+        j = 44100 * Math.floor(wavesurfer.backend.source.buffer.duration/2)
+        for (var i=0; i < frameCount; i++) {
+            nowBuffering[i] = c[i + 3748500]
+            // nowBuffering[i] = c[i+ j]
+            
+            rms += nowBuffering[i] * nowBuffering[i]
+            
+            if (i % 1000000 == 0) {
+                console.log(i, rms)
+            }
+        }
+        rms /= nowBuffering.length;
+        rms = Math.sqrt(rms);
+    }
+    // 20*Math.log10(Math.abs(0.5))
+    console.log("RMS ", rms, 20*Math.log10(Math.abs(rms)))
+    
+    
+    // Calculate the RMS of each 5 second interval
+    var rms2 = 0;
+    var n = 0;
+    var c = wavesurfer.backend.source.buffer.getChannelData(0);
+
+    for (var i=0; i < wavesurfer.backend.source.buffer.length; i++) {
+        rms2 += c[i] * c[i]
+        if (i % (44100 * rms_step) == 0) {
+            rms2 /= nowBuffering.length;
+            rms2 = Math.sqrt(rms2);
+            console.log("RMS2 ", n, i, 20*Math.log10(Math.abs(rms2)))
+            RMS_Array.push( [i / 44100, 20*Math.log10(Math.abs(rms2))] )
+            rms2 = 0
+            n++
+        }
+    }
+    
+    // Get an AudioBufferSourceNode.
+    // This is the AudioNode to use when we want to play an AudioBuffer
+    var source = wavesurfer.backend.ac.createBufferSource();
+    // set the buffer in the AudioBufferSourceNode
+    source.buffer = myArrayBuffer;
+    // connect the AudioBufferSourceNode to the
+    // destination so we can hear the sound
+    source.connect(gainNode);
+    // start the source playing
+    source.start();
+    drawGraph()
+
+}
+*/
+
+/*
+// MY ATTEMPT TO EXTRACT AUDIO DATA FROM AN EXTERNAL URL
+// DOESN'T WORK(?)
+function getData() {
+  source = audioCtx.createBufferSource();
+  request = new XMLHttpRequest();
+
+  request.open('GET', 'http://localhost/~JRap/AudioProject/sax.mp3', true);
+
+  request.responseType = 'arraybuffer';
+
+
+  request.onload = function() {
+    var audioData = request.response;
+
+    audioCtx.decodeAudioData(audioData, function(buffer) {
+        myBuffer = buffer;
+        songLength = buffer.duration;
+        source.buffer = myBuffer;
+        source.playbackRate.value = 1.0
+        //source.playbackRate.value = playbackControl.value;
+        source.connect(audioCtx.destination);
+        //source.loop = true;
+
+        // loopstartControl.setAttribute('max', Math.floor(songLength));
+        // loopendControl.setAttribute('max', Math.floor(songLength));
+      },
+
+      function(e){"Error with decoding audio data" + e.err});
+
+  }
+
+  request.send();
+}
+/*
