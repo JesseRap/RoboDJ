@@ -1,6 +1,8 @@
 var file1 = 'static/Wave_Racer_Streamers.mp3';
 var file2 = 'static/Hi_Tom_Summer_Plants.mp3';
-var file3 = 'static/Hoodboi_By_Ur_Side.mp3';
+var file3 = 'static/Hoodboi_By_Ur_Side.mp3',
+    hash,
+    token = null;
 
 
 // THESE VARIABLES DEFINE WHETHER A DECK IS RUNNING
@@ -433,3 +435,192 @@ function getData() {
   request.send();
 }
 */
+
+
+
+
+
+/* ************* */
+
+// SPOTIFY AUTHENTICATION - WORKING BUT UNNECESSARY FOR NOW
+
+
+document.getElementById('login-button').addEventListener('click', function() {
+
+    var client_id = '65fe5dec0aaa47e8ab365e51137a9ef9'; // Your client id
+    var redirect_uri = 'http://localhost:3000/'; // Your redirect uri
+
+    // var state = generateRandomString(16);
+
+    // localStorage.setItem(stateKey, state);
+    var scope = 'user-read-private user-read-email';
+
+    var url = 'https://accounts.spotify.com/authorize';
+    url += '?response_type=token';
+    url += '&client_id=' + encodeURIComponent(client_id);
+    //url += '&scope=' + encodeURIComponent(scope);
+    url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
+    // url += '&state=' + encodeURIComponent(state);
+
+    window.location = url;
+    token = window.location.hash
+
+    }, false);
+
+// document.querySelector("#token-button").addEventListener('click', getToken, false)
+
+
+// THIS RETRIEVES AN ACCESS TOKEN UPON OPENING THE PAGE
+/*
+$(function() {
+    getToken()
+    if (token === null) {
+
+        var client_id = '65fe5dec0aaa47e8ab365e51137a9ef9'; // Your client id
+        var redirect_uri = 'http://localhost:3000/'; // Your redirect uri
+
+        var url = 'https://accounts.spotify.com/authorize';
+        url += '?response_type=token';
+        url += '&client_id=' + encodeURIComponent(client_id);
+        url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
+
+        window.location = url;
+        // token = window.location.hash
+    }
+})
+*/
+
+
+
+function getToken() {
+    var h = window.location.hash
+    console.log("HASH!")
+    console.log(h)
+    if (h!="") {
+        console.log(h.match(/^#[^&]*/))
+        token = h.match(/^#[^&]*/)
+    }
+}
+
+
+/*
+function getSpotifyBPMLeft() {
+    $.ajax({
+        url: 'https://api.spotify.com/v1/me',
+        headers: {
+          'Authorization': 'Bearer ' + access_token
+        },
+        success: function(response) {
+}
+*/
+
+
+// ********************************************** //
+// BPM DETECTION
+
+/* TO TEST THE BPM OF A TRACK, LOAD THE PAGE, AND TYPE 'getBPM(X)'
+INTO THE CONSOLE, WHERE X = FILE1/FILE2/ETC. */
+
+
+function getPeaksAtThreshold(ws) {
+    // RETURNS AN ARRAY OF THE INDICES OF ALL THE PEAKS ABOVE THE THRESHOLD
+    
+    var data = ws.backend.source.buffer.getChannelData(0);
+    var threshold = 0.8;
+    var peaksArray = [];
+    for(var i = 0; i < data.length; i++) {
+        if (data[i] > threshold) {
+          peaksArray.push(i);
+          // Skip forward ~ 1/4s to get past this peak.
+          i += 10000;
+        }
+        i++;
+    }   
+    for (var i=0; i< peaksArray.length; i++) {
+        // Round the interval
+        // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100
+    }
+  return peaksArray;
+}
+
+
+function countIntervalsBetweenNearbyPeaks(peaks) {
+    // RETURNS A LIST OF DICTS WHICH COUNT 
+    // EACH INTERVAL BETWEEN NEARBY PEAKS AND HOW MANY TIMES IT APPEARS
+    var intervalCounts = [];
+    // NeighborRange = how many neighboring peaks to look at when counting intervals
+    var neighborRange = 10
+    peaks.forEach(function(peak, index) {
+    for (var i = 1; i < neighborRange; i++) {
+        // FOR EACH PEAK, GET THE INTERVALS TO THE NEXT NEIGHBORRANGE PEAKS
+        var interval = peaks[index + i] - peak;
+        // ROUND THE INTERVAL DOWN A LITTLE IN ORDER TO GROUP
+        // INTERVALS THAT ARE REALLY SIMILAR
+        interval = Math.floor(interval / 100) * 100
+        var foundInterval = intervalCounts.some(function(intervalCount) {
+            if (intervalCount.interval === interval) {
+                return intervalCount.count++;
+            }
+          });
+          if (!foundInterval) {
+                intervalCounts.push({
+                    interval: interval,
+                    count: 1
+                });
+            }
+        }
+    });
+    // SORT THE RESULTS BY COUNT DESCENDING
+    intervalCounts.sort(function(a,b) {return b.count - a.count})
+    return intervalCounts;
+}
+
+
+
+function intervalToBPM(interval, samplerate) {
+    result =  60 / (interval / samplerate)
+    while (result < 80) {
+        result *= 2
+    }
+    while (result > 160) {
+        result /= 2
+    }
+    return Math.round(result*2) / 2
+}
+
+function getBPM(title) {
+    // RETURN THE BPM OF THE TRACK WITH THE GIVEN TITLE
+    var ws = WaveSurfer.create({
+        container: '#hiddenDiv',
+        // scrollParent: true
+    });
+    
+    ws.load(title)
+    ws.on("ready", function() {
+        var sr = ws.backend.buffer.sampleRate;
+        console.log("NOW GETTING BPM FOR ", ws)
+        var peaks = getPeaksAtThreshold(ws);
+        var counts = countIntervalsBetweenNearbyPeaks(peaks);
+        console.log(counts)
+        var intervalGuess = counts[0].interval
+        console.log("INTERVAL GUESS = ", intervalGuess)
+        var result = 60 / (intervalGuess / ws.backend.buffer.sampleRate)
+        // GET THE RESULT BETWEEN 80 AND 160 BY DOUBLING/HALVING
+        while (result < 80) {
+            result *= 2
+        }
+        while (result > 160) {
+            result /= 2
+        }
+        // ROUND THE RESULT TO THE NEAREST 0.5
+        result = Math.round(result*2) / 2
+        console.log("BPM GUESS = ", result)
+        console.log("RUNNERS UP: ")
+        console.log(60 / (counts[1].interval / ws.backend.buffer.sampleRate), 
+                    60 / (counts[2].interval / ws.backend.buffer.sampleRate),
+                    60 / (counts[3].interval / ws.backend.buffer.sampleRate));
+        console.log(intervalToBPM(counts[1].interval,sr), 
+                    intervalToBPM(counts[2].interval,sr),
+                    intervalToBPM(counts[3].interval,sr));
+    })
+}
