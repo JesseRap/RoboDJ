@@ -18,6 +18,7 @@
   "homepage": "https://github.com/JesseRap/RoboDJ#readme",
   "dependencies": {
     "express": "^4.14.0",
-    "express-handlebars": "^3.0.0"
+    "express-handlebars": "^3.0.0",
+    "webpack": "^1.13.2"
   }
 }

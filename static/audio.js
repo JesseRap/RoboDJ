@@ -55,7 +55,7 @@ var wavesurferLeft = WaveSurfer.create({
 console.log("CREATED WS INSTANCE");
 console.log(wavesurferLeft)
 // LOAD INITIAL AUDIO TRACK
-wavesurferLeft.load(file1)
+//wavesurferLeft.load(file1)
 
 // DEFINE LEFT DECK VARIABLES
 var gainNodeL,
@@ -83,7 +83,7 @@ var gainNodeR,
     bufferR,
     RMS_ArrayR = [];
 
-wavesurferRight.load(file2)
+//wavesurferRight.load(file2)
 
 
 
@@ -220,9 +220,21 @@ document.querySelector("#option-0").addEventListener("click", function() {clearG
 document.querySelector("#option-1").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load(file2);})
 document.querySelector("#option-2").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load(file3);})
 
+var leftDeckUpload = document.querySelector("#leftDeckUpload");
+leftDeckUpload.addEventListener("change", function() {
+    clearGraphLeft();
+    wavesurferLeft.loadBlob(leftDeckUpload.files[0]);
+});
+
 document.querySelector("#option-0R").addEventListener("click", function() {clearGraphRight(); wavesurferRight.load(file1);})
 document.querySelector("#option-1R").addEventListener("click", function() {clearGraphRight(); wavesurferRight.load(file2);})
 document.querySelector("#option-2R").addEventListener("click", function() {clearGraphRight(); wavesurferRight.load(file3);})
+
+var rightDeckUpload = document.querySelector("#rightDeckUpload");
+rightDeckUpload.addEventListener("change", function() {
+    clearGraphRight();
+    wavesurferRight.loadBlob(rightDeckUpload.files[0]);
+});
 
 function clearGraphLeft() {
     RMS_ArrayL = [];
