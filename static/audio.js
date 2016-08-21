@@ -220,14 +220,18 @@ document.querySelector("#VolSliderR").addEventListener("change", changeVolumeRig
 
 var leftDeckUpload = document.querySelector("#leftDeckUpload");
 leftDeckUpload.addEventListener("change", function() {
-    clearGraphLeft();
-    wavesurferLeft.loadBlob(leftDeckUpload.files[0]);
+    if (leftDeckUpload.files.length > 0) {
+        clearGraphLeft();
+        wavesurferLeft.loadBlob(leftDeckUpload.files[0]);
+    }
 });
 
 var rightDeckUpload = document.querySelector("#rightDeckUpload");
 rightDeckUpload.addEventListener("change", function() {
-    clearGraphRight();
-    wavesurferRight.loadBlob(rightDeckUpload.files[0]);
+    if (rightDeckUpload.files.length > 0) {
+        clearGraphRight();
+        wavesurferRight.loadBlob(rightDeckUpload.files[0]);
+    }
 });
 
 function clearGraphLeft() {
