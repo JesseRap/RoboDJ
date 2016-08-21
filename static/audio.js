@@ -1,13 +1,13 @@
-var file1 = 'static/Wave_Racer_Streamers.mp3';
-var file2 = 'static/Hi_Tom_Summer_Plants.mp3';
-var file3 = 'static/Hoodboi_By_Ur_Side.mp3',
-    hash,
-    token = null;
+var hash;
+var token = null;
 
 
 // THESE VARIABLES DEFINE WHETHER A DECK IS RUNNING
 var leftIsRunning = false,
     rightIsRunning = false;
+
+var leftIsLoaded = false,
+    rightIsLoaded = false;
 
 // SET EVENT HANDLER FOR PLAY/PAUSE BUTTONS
 $("#playButton").on("click", playPauseLeft)
@@ -22,23 +22,27 @@ function play(ws) {
 
 function playPauseLeft() {
     // PLAY/PAUSE THE LEFT DECK
-    if (leftIsRunning) {
-        leftIsRunning = false
-        stop(wavesurferLeft)
-    } else {
-        leftIsRunning = true
-        play(wavesurferLeft)
+    if (leftIsLoaded) {
+        if (leftIsRunning) {
+            leftIsRunning = false
+            stop(wavesurferLeft)
+        } else {
+            leftIsRunning = true
+            play(wavesurferLeft)
+        }
     }
 }
 
 function playPauseRight() {
     // PLAY/PAUSE THE RIGHT DECK
-    if (rightIsRunning) {
-        rightIsRunning = false
-        stop(wavesurferRight)
-    } else {
-        rightIsRunning = true
-        play(wavesurferRight)
+    if (rightIsLoaded) {
+        if (rightIsRunning) {
+            rightIsRunning = false
+            stop(wavesurferRight)
+        } else {
+            rightIsRunning = true
+            play(wavesurferRight)
+        }
     }
 }
 
@@ -54,8 +58,6 @@ var wavesurferLeft = WaveSurfer.create({
 });
 console.log("CREATED WS INSTANCE");
 console.log(wavesurferLeft)
-// LOAD INITIAL AUDIO TRACK
-//wavesurferLeft.load(file1)
 
 // DEFINE LEFT DECK VARIABLES
 var gainNodeL,
@@ -82,8 +84,6 @@ var gainNodeR,
     bufferLengthR,
     bufferR,
     RMS_ArrayR = [];
-
-//wavesurferRight.load(file2)
 
 
 
@@ -161,14 +161,16 @@ wavesurferLeft.on('ready', function () {
     // ACTION ONCE THE TRACK IS LOADED INTO WAVESURFER INSTANCE
     console.log("Wavesurfer LEFT")
     console.log(wavesurferLeft)
-    isReady(wavesurferLeft, gainNodeL, bufferLengthL, dataArrayL, bufferL, RMS_ArrayL)
+    isReady(wavesurferLeft, gainNodeL, bufferLengthL, dataArrayL, bufferL, RMS_ArrayL);
+    leftIsLoaded = true;
 });
 
 wavesurferRight.on('ready', function () {
     // ACTION ONCE THE TRACK IS LOADED INTO WAVESURFER INSTANCE
     console.log("Wavesurfer RIGHT")
     console.log(wavesurferRight)
-    isReady(wavesurferRight, gainNodeR, bufferLengthR, dataArrayR, bufferR, RMS_ArrayR)
+    isReady(wavesurferRight, gainNodeR, bufferLengthR, dataArrayR, bufferR, RMS_ArrayR);
+    rightIsLoaded = true;
 });
 
 
