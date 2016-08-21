@@ -216,19 +216,11 @@ $('.form-group').on('click','input[type=radio]',function() {
 document.querySelector("#VolSliderL").addEventListener("change", changeVolumeLeft)
 document.querySelector("#VolSliderR").addEventListener("change", changeVolumeRight)
 
-document.querySelector("#option-0").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load(file1);})
-document.querySelector("#option-1").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load(file2);})
-document.querySelector("#option-2").addEventListener("click", function() {clearGraphLeft(); wavesurferLeft.load(file3);})
-
 var leftDeckUpload = document.querySelector("#leftDeckUpload");
 leftDeckUpload.addEventListener("change", function() {
     clearGraphLeft();
     wavesurferLeft.loadBlob(leftDeckUpload.files[0]);
 });
-
-document.querySelector("#option-0R").addEventListener("click", function() {clearGraphRight(); wavesurferRight.load(file1);})
-document.querySelector("#option-1R").addEventListener("click", function() {clearGraphRight(); wavesurferRight.load(file2);})
-document.querySelector("#option-2R").addEventListener("click", function() {clearGraphRight(); wavesurferRight.load(file3);})
 
 var rightDeckUpload = document.querySelector("#rightDeckUpload");
 rightDeckUpload.addEventListener("change", function() {
