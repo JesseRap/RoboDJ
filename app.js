@@ -20,6 +20,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.get('/', (request, response) => {  
   response.render(path.join(__dirname, 'views/layouts/main'), {
     audio: 'static/audio.js',
+    tests: 'static/tests.js'
   })
 })
 
