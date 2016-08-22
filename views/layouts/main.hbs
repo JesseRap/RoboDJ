@@ -14,8 +14,10 @@
     <div class="jumbotron">
         <div class="container-fluid" style="text-align:center">
             <h1 style="margin:auto">RoboDJ</h1>
+            <!--
             <button id="login-button">LOG IN</button>
             <button id="token-button">TOKEN</button>
+-->
         </div>
     </div>
     
@@ -55,7 +57,7 @@
             
             
             
-            <div class="col-sm-6 column" id="leftPlayer" style="text-align:center; border: 1px solid blue">
+            <div class="col-sm-6 column" id="rightPlayer" style="text-align:center; border: 1px solid blue">
                 <h2>DECK 2</h2>
                 <table id="rightDeckTable" style="border: 1px solid red; margin: auto">
                     <tr><td>
@@ -85,10 +87,16 @@
             
             
             </div>
+            
         </div>
     </div>
+    <input type="range" id="xFader" value="100" style="width:50%; margin:auto">
+    <div id="hiddenContainer">
+    <div id="hiddenDiv"></div>
+    <canvas id="hiddenCanvas" syle="border:1px solid black"></canvas>
+        <button id="hiddenPlayPause">Play/Pause</button>
+    </div>
     
-    <div id="hiddenDiv" style="visibility:hidden"></div>
     
     <!--
     <div><button id="playButton">Play</button></div>
