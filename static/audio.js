@@ -1,5 +1,6 @@
 var hash;
 var token = null;
+var masterSpeed = 0;
 
 // CREATE THE "HIDDEN" WAVESURFER FOR BPM ANALYSIS
 var hiddenWS,
@@ -41,7 +42,56 @@ function getPreviousHighestInArray(arr, int) {
     return arr2.filter(function(a) {return a <= int}).sort(function(a,b) {return b-a})[0];
 }
 
+function playPause(ws) {
+    var wsOther = wsBoth.slice().filter(function(a) {return a!== ws})[0];
+    console.log(wsOther);
+    if (ws.isLoaded) {
+        console.log("ISLOADED");
+        if (ws.isRunning) {
+            console.log("IS RUNNING, WILL STOP");
+            ws.isRunning = false;
+            ws.ws.pause();
+        } else {
+            if (wsOther.isRunning) {
+                // IF THE OTHER DECK IS RUNNING, FIND THE OFFSET AND
+                // THEN START THE DECK WHEN SYNCED UP
+                var startTime = Date.now();
+                // GET THE TIME UNTIL THE RIGHT DECK HITS THE NEXT BEAT
+                var currentTimeOther = wsOther.ws.backend.getCurrentTime();
+                var currentFrameOther = Math.round(currentTimeOther * 44100);
+                var nextBeatOther = findNextHighestInArray(wsOther.realBeatGrid, currentFrameOther);
+                var diffOther = nextBeatOther - currentFrameOther
+                
+                // GET THE DISTANCE BETWEEN THE LEFT DECK AND THE LAST BEAT
+                var currentTime = wsLeft.ws.backend.getCurrentTime();
+                var currentFrame = Math.round(currentTime * 44100);
+                var previousBeat = getPreviousHighestInArray(ws.realBeatGrid, currentFrame);
+                var diff = currentFrame - previousBeat;
+                
+                var delay = (diffOther/44100)*1000 + ((diff/44100)*1000) - 5;
+                //if (delay < 0) {delay += BPMToInterval(wsLeft.bpm, 44100)}
+                console.log("GONNA START IN ", delay);
+                
+                var endTime = Date.now();
+                console.log("THIS TOOK ", endTime - startTime);
+                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true}, delay);
+            } else {
+                ws.isRunning = true
+                ws.ws.play();
+            }
+        }
+    }
+}
+
 function playPauseLeft() {
+    playPause(wsLeft);
+}
+
+function playPauseRight() {
+    playPause(wsRight);
+}
+
+function playPauseLeft2() {
     // PLAY/PAUSE THE LEFT DECK
     if (leftIsLoaded) {
         if (leftIsRunning) {
@@ -86,7 +136,7 @@ function playPauseLeft() {
     }
 }
 
-function playPauseRight() {
+function playPauseRight2() {
     // PLAY/PAUSE THE RIGHT DECK
     if (rightIsLoaded) {
         if (rightIsRunning) {
@@ -137,6 +187,8 @@ function wsObject(ws) {
     this.RMS_array = [];
     this.waveformCanvas = $(this.ws.container).find("wave canvas")[0];
     this.waveformCtx = this.waveformCanvas.getContext("2d");
+    this.isRunning = false;
+    this.isLoaded = false;
 }
 
 /*
@@ -171,6 +223,10 @@ var wavesurferRight = WaveSurfer.create({
 });
 
 var wsRight = new wsObject(wavesurferRight);
+
+var wsBoth = [wsLeft, wsRight];
+
+    
 
 /*
 // DEFINE RIGHT DECK VARIABLES
@@ -278,26 +334,9 @@ wavesurferLeft.on('ready', function () {
     // ACTION ONCE THE TRACK IS LOADED INTO WAVESURFER INSTANCE
     console.log("Wavesurfer LEFT")
     console.log(wavesurferLeft)
-    /*
-    var sr = wsLeft.ws.backend.buffer.sampleRate;
-    console.log("NOW GETTING BPM FOR ", wsLeft.ws)
-    wsLeft.peaks = getPeaksAtThreshold(wsLeft);
-    console.log("GOT PEAKS BACK")
-    var counts = countIntervalsBetweenNearbyPeaks(wsLeft.peaks);
-    console.log(counts)
-    var intervalGuess = counts[0].interval
-    console.log("INTERVAL GUESS = ", intervalGuess)
-
-    console.log("RUNNERS UP: ")
-
-    console.log(counts[1].interval, counts[2].interval, counts[3].interval)
-
-    wsLeft.BPM = intervalGuess;
-    // return intervalGuess
-    */
-    
+   
     isReady(wsLeft);
-    leftIsLoaded = true;
+    wsLeft.isLoaded = true;
 });
 
 wavesurferRight.on('ready', function () {
@@ -305,7 +344,7 @@ wavesurferRight.on('ready', function () {
     console.log("Wavesurfer RIGHT")
     console.log(wavesurferRight)
     isReady(wsRight);
-    rightIsLoaded = true;
+    wsRight.isLoaded = true;
 });
 
 
