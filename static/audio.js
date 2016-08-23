@@ -401,6 +401,10 @@ document.querySelector("#VolSliderL").addEventListener("change", changeVolumeLef
 document.querySelector("#VolSliderR").addEventListener("change", changeVolumeRight);
 document.querySelector("#xFader").addEventListener("change", xFade);
 
+document.querySelector("#VolSliderL").addEventListener("input", changeVolumeLeft);
+document.querySelector("#VolSliderR").addEventListener("input", changeVolumeRight);
+document.querySelector("#xFader").addEventListener("input", xFade);
+
 var leftDeckUpload = document.querySelector("#leftDeckUpload");
 leftDeckUpload.addEventListener("change", function() {
     if (leftDeckUpload.files.length > 0) {
