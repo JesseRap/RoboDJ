@@ -1,6 +1,6 @@
 var hash;
 var token = null;
-var masterSpeed = 0;
+var masterTempo = 140;
 
 // CREATE THE "HIDDEN" WAVESURFER FOR BPM ANALYSIS
 var hiddenWS,
@@ -53,8 +53,14 @@ function playPause(ws) {
             ws.ws.pause();
         } else {
             if (wsOther.isRunning) {
+                // SET THE PLAYBACKRATE SO THAT THE SELECTED WS 
+                // WILL BE AT SAME TEMPO AS RUNNING WS
+                ws.playbackSpeed = masterTempo / ws.BPM;
+                ws.ws.backend.playbackRate = ws.playbackSpeed;
+                console.log(ws.playbackSpeed);
                 // IF THE OTHER DECK IS RUNNING, FIND THE OFFSET AND
                 // THEN START THE DECK WHEN SYNCED UP
+                
                 var startTime = Date.now();
                 // GET THE TIME UNTIL THE RIGHT DECK HITS THE NEXT BEAT
                 var currentTimeOther = wsOther.ws.backend.getCurrentTime();
@@ -74,9 +80,14 @@ function playPause(ws) {
                 
                 var endTime = Date.now();
                 console.log("THIS TOOK ", endTime - startTime);
-                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true}, delay);
+                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true}, delay * (1/ws.playbackSpeed));
+                
+                ws.ws.play();
+                ws.isRunning = true;
             } else {
-                ws.isRunning = true
+                ws.ws.backend.playbackRate = 1;
+                ws.isRunning = true;
+                masterTempo = ws.BPM;
                 ws.ws.play();
             }
         }
@@ -189,6 +200,7 @@ function wsObject(ws) {
     this.waveformCtx = this.waveformCanvas.getContext("2d");
     this.isRunning = false;
     this.isLoaded = false;
+    this.playbackSpeed = 1;
 }
 
 /*
