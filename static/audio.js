@@ -31,6 +31,15 @@ function play(ws) {
     ws.play()
 }
 
+function findNextHighestInArray(arr, int) {
+    var arr2 = arr.slice();
+    return arr2.filter(function(a) {return a >= int}).sort(function(a,b) {return a-b})[0]
+}
+
+function getPreviousHighestInArray(arr, int) {
+    var arr2 = arr.slice();
+    return arr2.filter(function(a) {return a <= int}).sort(function(a,b) {return b-a})[0];
+}
 
 function playPauseLeft() {
     // PLAY/PAUSE THE LEFT DECK
@@ -39,8 +48,40 @@ function playPauseLeft() {
             leftIsRunning = false
             stop(wavesurferLeft)
         } else {
-            leftIsRunning = true
-            play(wavesurferLeft)
+            if (rightIsRunning) {
+                console.log("RIGHT IS RUNNING")
+                
+                var startTime = Date.now();
+                // GET THE TIME UNTIL THE RIGHT DECK HITS THE NEXT BEAT
+                var currentTimeR = wsRight.ws.backend.getCurrentTime();
+                var currentFrameR = Math.round(currentTimeR * 44100);
+                var nextBeatR = findNextHighestInArray(wsRight.realBeatGrid, currentFrameR);
+                var diffR = nextBeatR - currentFrameR
+                
+                // GET THE DISTANCE BETWEEN THE LEFT DECK AND THE LAST BEAT
+                var currentTimeL = wsLeft.ws.backend.getCurrentTime();
+                var currentFrameL = Math.round(currentTimeL * 44100);
+                var previousBeatL = getPreviousHighestInArray(wsLeft.realBeatGrid, currentFrameL);
+                var diffL = currentFrameL - previousBeatL;
+                
+                //wsLeft.ws.seekTo(previousBeatL/wsLeft.ws.backend.buffer.length);
+                
+                console.log("RIGHT", wsRight.realBeatGrid, currentTimeR,currentFrameR,nextBeatR,diffR, (diffR/44100)*1000);
+                console.log("LEFT",wsLeft.realBeatGrid, currentTimeL,currentFrameL,previousBeatL,diffL, (diffL/44100)*1000);
+                
+                var delay = (diffR/44100)*1000 + ((diffL/44100)*1000) - 5;
+                if (delay < 0) {delay += BPMToInterval(wsLeft.bpm, 44100)}
+                console.log("GONNA START IN ", delay);
+                
+                var endTime = Date.now();
+                console.log("THIS TOOK ", endTime - startTime);
+                setTimeout(function() {console.log(wsRight.ws.backend.getCurrentTime()*44100), wsLeft.ws.play(); leftIsRunning = true}, delay);
+                
+
+            } else {
+                leftIsRunning = true
+                play(wavesurferLeft)
+            }
         }
     }
 }
@@ -79,10 +120,26 @@ function stop(ws) {
 // CREATE LEFT DECK WAVESURFER INSTANCE
 var wavesurferLeft = WaveSurfer.create({
     container: '#waveformL',
+    normalize: true,
+    scrollParent: true
 });
 console.log("CREATED WS INSTANCE");
 console.log(wavesurferLeft)
 
+var wsLeft = new wsObject(wavesurferLeft);
+
+function wsObject(ws) {
+    this.ws = ws;
+    this.canvas = this.ws.container;
+    this.context = this.ws.backend.ac;
+    this.gainNode = this.context.createGain();
+    this.ws.backend.setFilter(this.gainNode);
+    this.RMS_array = [];
+    this.waveformCanvas = $(this.ws.container).find("wave canvas")[0];
+    this.waveformCtx = this.waveformCanvas.getContext("2d");
+}
+
+/*
 // DEFINE LEFT DECK VARIABLES
 var gainNodeL,
     analyserL,
@@ -92,21 +149,30 @@ var gainNodeL,
     bufferLengthL,
     bufferL,
     RMS_ArrayL = [],
-    rms_step = 2.5;
+    beatGridL = [],
+    currentTrackL = "",
+    bpmL;
+   */ 
+var rms_step = 2.5;
 
-
+/*
 // CONNECT GAIN NODE
 var contextL = wavesurferLeft.backend.ac
 gainNodeL = contextL.createGain();
 console.log(gainNodeL);
 wavesurferLeft.backend.setFilter(gainNodeL);
-
+*/
 
 // CREATE RIGHT DECK WAVESURFER INSTANCE
 var wavesurferRight = WaveSurfer.create({
     container: '#waveformR',
+    normalize: true,
+    scrollParent: true
 });
 
+var wsRight = new wsObject(wavesurferRight);
+
+/*
 // DEFINE RIGHT DECK VARIABLES
 var gainNodeR,
     analyserR,
@@ -115,13 +181,18 @@ var gainNodeR,
     canvasCtxR = canvasR.getContext("2d"),
     bufferLengthR,
     bufferR,
-    RMS_ArrayR = [];
+    RMS_ArrayR = [],
+    beatGridR = [],
+    currentTrackR = "",
+    bpmR;
+
 
 // CONNECT GAIN NODE
 var contextR = wavesurferRight.backend.ac
 gainNodeR = contextR.createGain();
 console.log(gainNodeR);
 wavesurferRight.backend.setFilter(gainNodeR);
+*/
 
 function draw() {
     // DRAW THE OSCILLOSCOPE
@@ -162,11 +233,12 @@ function draw() {
 
 
 // FUNCTION TO CALL ONCE THE WAVESURFER TRACK HAS BEEN LOADED
-function isReady(ws, gainNode, bufferLength, dataArray, buffer, rms_array) {
+function isReady(ws) {
+    console.log("IS READY");
     // HELPER FUNCTION FOR DECK-IS-READY
-    var context = ws.backend.ac
-    console.log(ws.backend)
-    console.log(context)
+    // var context = ws.backend.ac
+    console.log(ws)
+    //console.log(context)
     /*
     // CONNECT GAIN NODE
     gainNode = context.createGain();
@@ -175,33 +247,56 @@ function isReady(ws, gainNode, bufferLength, dataArray, buffer, rms_array) {
     ws.backend.setFilter(gainNode)
     */
     // CONNECT ANALYSER
-    analyser = context.createAnalyser();
-    gainNode.connect(analyser)
-    bufferLength = analyser.frequencyBinCount;
-    console.log(bufferLength);
+    ws.analyser = ws.context.createAnalyser();
+    ws.gainNode.connect(ws.analyser)
+    ws.bufferLength = ws.analyser.frequencyBinCount;
+    console.log(ws.bufferLength);
     
     // FEED THE AUDIO DATA INTO THE BUFFER
-    dataArray = new Uint8Array(bufferLength);
-    analyser.getByteTimeDomainData(dataArray);
-    buffer = new Uint8Array(analyser.fftSize);
-    console.log(bufferLength)
+    ws.dataArray = new Uint8Array(ws.bufferLength);
+    ws.analyser.getByteTimeDomainData(ws.dataArray);
+    ws.buffer = new Uint8Array(ws.analyser.fftSize);
+    console.log(ws.bufferLength)
 
     // GET AN AVERAGE RMS ARRAY FOR GRAPHING PURPOSES
-    getRMS2(ws, rms_array, 2.5 * 44100);
+    // getRMS2(ws, 2.5 * 44100);
     // DRAW THE LOUDNESS GRAPH
-    if (ws === wavesurferLeft) {
+    if (ws.ws === wavesurferLeft) {
         // draw()
-        drawGraphL();
+        // drawGraphL();
     } else {
-        drawGraphR();
+        // drawGraphR();
     }
+    
+    // GET THE BEAT GRID
+    getBPM(ws);
+    getBeatArray(ws);
+    findSegments(ws);
 }
 
 wavesurferLeft.on('ready', function () {
     // ACTION ONCE THE TRACK IS LOADED INTO WAVESURFER INSTANCE
     console.log("Wavesurfer LEFT")
     console.log(wavesurferLeft)
-    isReady(wavesurferLeft, gainNodeL, bufferLengthL, dataArrayL, bufferL, RMS_ArrayL);
+    /*
+    var sr = wsLeft.ws.backend.buffer.sampleRate;
+    console.log("NOW GETTING BPM FOR ", wsLeft.ws)
+    wsLeft.peaks = getPeaksAtThreshold(wsLeft);
+    console.log("GOT PEAKS BACK")
+    var counts = countIntervalsBetweenNearbyPeaks(wsLeft.peaks);
+    console.log(counts)
+    var intervalGuess = counts[0].interval
+    console.log("INTERVAL GUESS = ", intervalGuess)
+
+    console.log("RUNNERS UP: ")
+
+    console.log(counts[1].interval, counts[2].interval, counts[3].interval)
+
+    wsLeft.BPM = intervalGuess;
+    // return intervalGuess
+    */
+    
+    isReady(wsLeft);
     leftIsLoaded = true;
 });
 
@@ -209,7 +304,7 @@ wavesurferRight.on('ready', function () {
     // ACTION ONCE THE TRACK IS LOADED INTO WAVESURFER INSTANCE
     console.log("Wavesurfer RIGHT")
     console.log(wavesurferRight)
-    isReady(wavesurferRight, gainNodeR, bufferLengthR, dataArrayR, bufferR, RMS_ArrayR);
+    isReady(wsRight);
     rightIsLoaded = true;
 });
 
@@ -241,15 +336,17 @@ function getRMS(ws, rms_array) {
     }
 }
 
-function getRMS2(ws, rms_array, rms_step1) {
+function getRMS2(ws, rms_step1) {
     // CALCULATE THE RMS OF EACH RMS_STEP (FRAMES) INTERVAL
     console.log("getRMS2");
     // ROUND THE INTERVAL TO A WHOLE NUMBER
     rms_step1 = Math.round(rms_step1);
     var rms = 0;
     // GET THE L AND R CHANNEL DATA
-    var c = ws.backend.source.buffer.getChannelData(0);
-    var d = ws.backend.source.buffer.getChannelData(1);
+    var c = ws.ws.backend.source.buffer.getChannelData(0);
+    var d = ws.ws.backend.source.buffer.getChannelData(1);
+    console.log("HERRRE");
+    console.log(c,d,rms_step1,ws.RMS_array);
 
     for (var i=0; i < c.length; i++) {
         // GO THROUGH THE CHANNEL DATA AND GET THE RMS OF 
@@ -261,12 +358,12 @@ function getRMS2(ws, rms_array, rms_step1) {
             rms = Math.sqrt(rms);
             // CONVERT THE RESULT TO DECIBELS AND PUSH TO THE ARRAY,
             // ALONG WITH THE SECONDS AT WHICH THE RMS IS TAKEN
-            rms_array.push( [i / 44100, 20*Math.log10(Math.abs(rms))] )
+            ws.RMS_array.push( [i / 44100, 20*Math.log10(Math.abs(rms))] )
             rms = 0;
         }
     }
-    console.log("RMS_ARRAY ", rms_array)
-    return rms_array;
+    console.log("RMS_ARRAY ", ws.RMS_array)
+    return ws.RMS_array;
 }
 
 function changeVolumeLeft() {
@@ -274,7 +371,7 @@ function changeVolumeLeft() {
     console.log("CHANGE")
     var sliderValue = document.getElementById("VolSliderL").value
     console.log(sliderValue)
-    gainNodeL.gain.value = sliderValue / 100
+    wsLeft.gainNode.gain.value = sliderValue / 100
 }
 
 function changeVolumeRight() {
@@ -282,7 +379,7 @@ function changeVolumeRight() {
     console.log("CHANGE")
     var sliderValue = document.getElementById("VolSliderR").value
     console.log(sliderValue)
-    gainNodeR.gain.value = sliderValue / 100
+    wsRight.gainNode.gain.value = sliderValue / 100
 }
 
 function xFade() {
@@ -291,8 +388,8 @@ function xFade() {
     var leftVal = Math.sqrt(0.5 * (1 - xFadeValue));
     var rightVal = Math.sqrt(0.5 * (1 + xFadeValue));
     console.log(leftVal, rightVal);
-    gainNodeL.gain.value = leftVal;
-    gainNodeR.gain.value = rightVal;
+    wsLeft.gainNode.gain.value = leftVal;
+    wsRight.gainNode.gain.value = rightVal;
 }
 
 $('.form-group').on('click','input[type=radio]',function() {
@@ -308,7 +405,9 @@ var leftDeckUpload = document.querySelector("#leftDeckUpload");
 leftDeckUpload.addEventListener("change", function() {
     if (leftDeckUpload.files.length > 0) {
         clearGraphLeft();
-        wavesurferLeft.loadBlob(leftDeckUpload.files[0]);
+        var track = leftDeckUpload.files[0];
+        wavesurferLeft.loadBlob(track);
+        wsLeft.currentTrack = track;
     }
 });
 
@@ -316,18 +415,21 @@ var rightDeckUpload = document.querySelector("#rightDeckUpload");
 rightDeckUpload.addEventListener("change", function() {
     if (rightDeckUpload.files.length > 0) {
         clearGraphRight();
-        wavesurferRight.loadBlob(rightDeckUpload.files[0]);
+        var track = rightDeckUpload.files[0];
+        wavesurferRight.loadBlob(track);
+        currentTrackR = track;
+        wsRight.currentTrack = track;
     }
 });
 
 function clearGraphLeft() {
-    RMS_ArrayL = [];
+    wsLeft.RMS_array = [];
     var canvas = document.querySelector("#graphLeft")
     canvas.width = canvas.width
 }
 
 function clearGraphRight() {
-    RMS_ArrayR = [];
+    wsRight.RMS_array = [];
     var canvas = document.querySelector("#graphRight")
     canvas.width = canvas.width
 }
@@ -337,19 +439,20 @@ function clearGraphRight() {
 function drawGraphL() {
     // Wrapper for drawing the left graph
     d = requestAnimationFrame(drawGraphL)
-    drawGraph(wavesurferLeft, document.querySelector("#graphLeft"), RMS_ArrayL)
+    drawGraph(wavesurferLeft, document.querySelector("#graphLeft"), wsLeft.RMS_array)
 }
 
 function drawGraphR() {
     // Wrapper for drawing the left graph
     d = requestAnimationFrame(drawGraphR)
-    drawGraph(wavesurferRight, document.querySelector("#graphRight"), RMS_ArrayR)
+    drawGraph(wavesurferRight, document.querySelector("#graphRight"), wsRight.RMS_array)
 }
 
 
-function drawGraph(ws, canvas, rms_array) {
+function drawGraph(ws, canvas) {
     // var canvas = document.getElementById("graphLeft");
     var context = canvas.getContext("2d");
+    var rms_array = ws.RMS_array;
     
     for (var x = 0.5; x < canvas.width; x += canvas.width / (ws.backend.buffer.duration / rms_step) ) {
         context.moveTo(x, 0);
@@ -642,8 +745,9 @@ function getPeaksAtThreshold(ws) {
     // RETURNS AN ARRAY OF THE INDICES OF ALL THE PEAKS ABOVE THE THRESHOLD
     console.log("UP HERE");
     console.log(ws);
-    var data1 = ws.backend.buffer.getChannelData(0);
-    var data2 = ws.backend.buffer.getChannelData(0);
+    
+    var data1 = ws.ws.backend.buffer.getChannelData(0);
+    var data2 = ws.ws.backend.buffer.getChannelData(0);
     
     
     threshold = 0.95;
@@ -664,7 +768,7 @@ function getPeaksAtThreshold(ws) {
         }
         threshold -= 0.05;
         console.log("THRESHOLD NOW", threshold, peaksArray.length);
-    } while (peaksArray.length < ws.backend.buffer.duration / 2);
+    } while (peaksArray.length < ws.ws.backend.buffer.duration / 2);
     /*
     console.log("THRESHOLD NOW", threshold);
     for(var i = 0; i < data.length; i++) {
@@ -678,8 +782,8 @@ function getPeaksAtThreshold(ws) {
     */
     console.log("PEAKS ARRAY");
     //console.log(peaksArray);
-    var canvasH = $("#hiddenContainer wave canvas")[0];
-    var contextH = canvasH.getContext("2d");
+    //var canvasH = $("#hiddenContainer wave canvas")[0];
+    //var contextH = canvasH.getContext("2d");
     /*
     var scale = canvasH.width / hiddenWS.backend.buffer.length;
     for (var i=0; i< peaksArray.length; i++) {
@@ -760,59 +864,25 @@ function BPMToInterval(BPM, samplerate) {
 
     
     
-function getBPM(track) {
+function getBPM(ws) {
     // RETURN THE BPM OF THE TRACK WITH THE GIVEN TITLE
-    /*
-    var ws = WaveSurfer.create({
-        container: '#hiddenDiv',
-        // scrollParent: true
-    });
-    */
-    var currentTrack = track
-    // var currentTrack = 'static/Music/' + trackListArray.shift();
-    var ws = hiddenWS;
-    ws.unAll();
-    ws.load(currentTrack);
-    ws.on("ready", function() {
-        var sr = ws.backend.buffer.sampleRate;
-        console.log("NOW GETTING BPM FOR ", ws)
-        var peaks = getPeaksAtThreshold(ws);
-        console.log("GOT PEAKS BACK")
-        var counts = countIntervalsBetweenNearbyPeaks(peaks);
-        console.log(counts)
-        var intervalGuess = counts[0].interval
-        console.log("INTERVAL GUESS = ", intervalGuess)
-        /*
-        var result = 60 / (intervalGuess / ws.backend.buffer.sampleRate)
-        // GET THE RESULT BETWEEN 80 AND 160 BY DOUBLING/HALVING
-        while (result < 80) {
-            result *= 2
-        }
-        while (result > 160) {
-            result /= 2
-        }
-        // ROUND THE RESULT TO THE NEAREST 0.5
-        result = Math.round(result*2) / 2
-        */
-        //var result = intervalToBPM(intervalGuess, ws.backend.buffer.sampleRate)
-        // console.log("BPM GUESS = ", result)
-        console.log("RUNNERS UP: ")
-        //console.log(intervalToBPM(intervalGuess,ws.backend.buffer.sampleRate))
-        /*
-        console.log(60 / (counts[1].interval / ws.backend.buffer.sampleRate), 
-                    60 / (counts[2].interval / ws.backend.buffer.sampleRate),
-                    60 / (counts[3].interval / ws.backend.buffer.sampleRate));
-              */
-        console.log(counts[1].interval, counts[2].interval, counts[3].interval)
-        /*
-        console.log(intervalToBPM(counts[1].interval,sr), 
-                    intervalToBPM(counts[2].interval,sr),
-                    intervalToBPM(counts[3].interval,sr));
-                    */
-        return intervalGuess
-    })
-    // .push(result);
-    // return result
+
+    var sr = ws.ws.backend.buffer.sampleRate;
+    console.log("NOW GETTING BPM FOR ", ws.ws)
+    var peaks = getPeaksAtThreshold(ws);
+    console.log("GOT PEAKS BACK")
+    var counts = countIntervalsBetweenNearbyPeaks(peaks);
+    console.log(counts)
+    var intervalGuess = counts[0].interval
+    console.log("INTERVAL GUESS = ", intervalGuess)
+  
+    console.log("RUNNERS UP: ")
+  
+    console.log(counts[1].interval, counts[2].interval, counts[3].interval)
+
+    ws.BPM = intervalGuess;
+    return intervalGuess
+
 }
 
 var round = 1;
@@ -905,77 +975,78 @@ function compareResults(correctAnswerArr) {
     return result;
 }
 
-var realFirstPeak;
-var realInterval;
-var realBeatGrid;
 
-function getBeatArray(ws, bpm) {
+
+function getBeatArray(ws) {
+    console.log("GET BEAT ARRAY")
     var peakArray = getPeaksAtThreshold(ws);
     // NOT SURE IF THIS VALUE SHOULD BE ROUNDED OR NOT
-    var interval = Math.round(BPMToInterval(bpm, ws.backend.buffer.sampleRate));
+    // INTERVAL IS THE SAMPLE DISTANCE BETWEEN BEATS
+    var interval = Math.round(BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate));
     console.log(interval);
     
     var result = [];
     var topScore = 0;
     
     for (var i=0; i < 30; i++) {
+        // GO THROUGH THE FIRST 30 PEAKS, MAKE A BEATGRID,
+        // AND SEE WHICH PEAK HAS THE MOST "HITS"
         var firstPeak = peakArray[i];
         // console.log(i, firstPeak);
         var peakGrid = [];
         var peakGrid2 = [];
-        var c = ws.backend.buffer.getChannelData(0);
-        for (var j = firstPeak; j < ws.backend.buffer.length; j += interval) {
+        var c = ws.ws.backend.buffer.getChannelData(0);
+        for (var j = firstPeak; j < ws.ws.backend.buffer.length; j += interval) {
             peakGrid2.push(j)
             for (var k = -100; k < 100; k++) {
                 if (peakArray.indexOf(Math.round(j+k)) > -1) {
                     peakGrid.push(j);
-                    realInterval = interval;
                     break
                 }
             }
         }
         if (peakGrid.length > topScore) {
             result = peakGrid2;
-            realFirstPeak = firstPeak;
+            ws.realInterval = interval;
+            ws.realFirstPeak = firstPeak;
         }
     }
     
-    for (var i = realFirstPeak - interval; i > 0; i -= interval) {
+    for (var i = ws.realFirstPeak - interval; i > 0; i -= interval) {
         result.unshift(i)
     }
     
     
     
     console.log(result);
-    var canvasH = $("#hiddenContainer wave canvas")[0];
-    var contextH = canvasH.getContext("2d");
-    var scale = canvasH.width / hiddenWS.backend.buffer.length;
+    var ctx = ws.waveformCtx
+    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
     for (var i=0; i< result.length; i++) {
         var x = result[i];
-        var y = (x / hiddenWS.backend.buffer.length) * canvasH.width
+        var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
         // console.log(i,peaksArray[i],i*scale);
-        contextH.moveTo(y, 0);
-        contextH.lineTo(y, canvasH.height);
+        ctx.moveTo(y, 0);
+        ctx.lineTo(y, ws.waveformCanvas.height);
         // Round the interval
         // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
     }
-    contextH.strokeStyle = "#000";
-    contextH.stroke();
-    console.log("REALFIRSTPEAK", realFirstPeak);
-    contextH.beginPath();
-    contextH.lineWidth = 5;
-    contextH.moveTo((realFirstPeak / hiddenWS.backend.buffer.length)*canvasH.width, 0);
-    contextH.lineTo((realFirstPeak / hiddenWS.backend.buffer.length)*canvasH.width, canvasH.height);
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+    console.log("REALFIRSTPEAK", ws.realFirstPeak);
+    ctx.beginPath();
+    ctx.lineWidth = 5;
+    ctx.moveTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, 0);
+    ctx.lineTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, ctx.height);
     // contextH.stroke();
     
     console.log(getAverageRMS(ws));
-    realBeatGrid = result;
+    ws.realBeatGrid = result;
     return result
 }
 
 var N = 8;
-var RMSAverages;
-var RMSAveragesArray;
+// var RMSAverages;
+// var RMSAveragesArray;
 function getAverageRMS(ws) {
     // RETURNS A LIST OF THE AVERAGE RMS'S EVERY N BEATS
     // EACH ENTRY TELLS YOU THE AVERAGE RMS UP TO THE NEXT N BEATS
@@ -983,33 +1054,33 @@ function getAverageRMS(ws) {
     var result = [];
     var rmsArr = [];
     // var n = 32
-    console.log(realInterval,ws);
-    var RMS = getRMS2(ws, rmsArr, realInterval);
-    RMSAveragesArray = RMS;
-    for (var i=0; i < rmsArr.length-N; i++) {
+    console.log(ws.realInterval,ws.ws);
+    var RMS = getRMS2(ws, ws.realInterval);
+    ws.RMSAveragesArray = RMS;
+    for (var i=0; i < ws.RMS_array.length-N; i++) {
         // console.log("NOW AT ", i);
         var average = 0;
         for (var j=0; j < N; j++) {
             // console.log("step ",j)
-            if (i+j < rmsArr.length) {
+            if (i+j < ws.RMS_array.length) {
                 // console.log(rmsArr[i+j][1]);
-                average += rmsArr[i+j][1];
+                average += ws.RMS_array[i+j][1];
             } else {
                 console.log("Last section");
                 // console.log(average, n);
                 average /= j;
-                result.push([i * realInterval, average])
+                result.push([i * ws.realInterval, average])
                 // result.push(average);
-                RMSAverages = result;
+                ws.RMSAverages = result;
                 return result;
             }
             
         }
         average /= N;
         // console.log(average, n);
-        result.push([i * realInterval, average]);
+        result.push([i * ws.realInterval, average]);
     }
-    RMSAverages = result;
+    ws.RMSAverages = result;
     console.log(getDifferences(result));
     return result;
 }
@@ -1052,10 +1123,6 @@ function smoothArray(arr, shift) {
     });
 }
 
-// console.log("SMOOTH ARRAY");
-// console.log(smoothArray([1,5,10,12,16]));
-// console.log(smoothArray([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20],3));
-
 function groupByConsecutiveIntegers(arr) {
     console.log("GROUP BY CONSECUTIVE");
     console.log(arr);
@@ -1075,17 +1142,20 @@ function groupByConsecutiveIntegers(arr) {
     return result;
 }
 
-function getSegments() {
-    return findSegments(getDifferences(RMSAverages));
+/*
+function getSegments(ws) {
+    return findSegments(getDifferences(ws.RMSAverages));
 }
+*/
 
 // WORKING WELL:
 // "static/EpicHouse/Ultra Nate - Free (Teo Moss & Danie Shems Remix)_www.dj-case.com.mp3"
 // "static/EpicHouse/Zoe Badwi - Release Me (Niels Van Gogh Remix)_www.dj-case.com.mp3"
 // "static/EpicHouse/Tv Rock ft Rudy - In The Air (Axwell Remix)_www.dj-case.com.mp3"
-var loudestSeg = 0;
-var segVolArray = [];
-function findSegments(differencesArray) {
+// var loudestSeg = 0;
+// var segVolArray = [];
+function findSegments(ws) {
+    var differencesArray = getDifferences(ws.RMSAverages);
     differencesArray = differencesArray.sort(function(a,b) {return b[1] - a[1]}).slice(0,100).sort(function(a,b) {return b[0] - a[0]});
     console.log("DIFF", differencesArray);
     var grouped = groupByConsecutiveIntegers(differencesArray);
@@ -1100,41 +1170,42 @@ function findSegments(differencesArray) {
     
     var loudest = 0;
     var arr1 = [];
+    ws.segVolArray = [];
     console.log(result);
     for (var i = 0; i < result.length; i++) {
-        var r = (RMSAverages[result[i]][1] - RMSAverages[result[i]-N][1]);
+        var r = (ws.RMSAverages[result[i]][1] - ws.RMSAverages[result[i]-N][1]);
         console.log("THIS ", i, result[i], r);
-        segVolArray.push(r);
-        console.log(r, loudestSeg);
+        ws.segVolArray.push(r);
+        console.log(r, ws.loudestSeg);
         if (r !== Infinity && r > loudest) {
             console.log("r is now ", r);
             loudest = r;
-            loudestSeg = result[i];
+            ws.loudestSeg = result[i];
         }
     }
     console.log(result);
     result.sort(function(a,b) {
         console.log(a,b);
-        var rA = RMSAverages[a][1] - RMSAverages[a-N][1];
-        var rB = RMSAverages[b][1] - RMSAverages[b-N][1];
+        var rA = ws.RMSAverages[a][1] - ws.RMSAverages[a-N][1];
+        var rB = ws.RMSAverages[b][1] - ws.RMSAverages[b-N][1];
         return rB - rA;
     });
     console.log("SORTED ",result);
     
     
-    var canvasH = $("#hiddenContainer wave canvas")[0];
-    var contextH = canvasH.getContext("2d");
-    var scale = canvasH.width / hiddenWS.backend.buffer.length;
-    contextH.beginPath();
-    contextH.lineWidth = 10;
+    // var canvasH = $("#hiddenContainer wave canvas")[0];
+    // var contextH = canvasH.getContext("2d");
+    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
+    ws.waveformCtx.beginPath();
+    ws.waveformCtx.lineWidth = 10;
     for (var i = 0; i < result.length; i++) {
-        console.log(i,( (realBeatGrid[result[i]]) / hiddenWS.backend.buffer.length) * canvasH.width)
-        contextH.moveTo( ( (realBeatGrid[result[i]]) / hiddenWS.backend.buffer.length) * canvasH.width, 0);
-        contextH.lineTo( ( (realBeatGrid[result[i]]) / hiddenWS.backend.buffer.length) * canvasH.width, canvasH.height);
+        console.log(i,( (ws.realBeatGrid[result[i]]) / ws.ws.backend.buffer.length) * ws.waveformCanvas.width)
+        ws.waveformCtx.moveTo( ( (ws.realBeatGrid[result[i]]) / ws.ws.backend.buffer.length) * ws.waveformCanvas.width, 0);
+        ws.waveformCtx.lineTo( ( (ws.realBeatGrid[result[i]]) / ws.ws.backend.buffer.length) * ws.waveformCanvas.width, ws.waveformCanvas.height);
     }
-    contextH.strokeStyle = "#090";
+    ws.waveformCtx.strokeStyle = "#090";
     console.log("STROKE");
-    contextH.stroke();
+    ws.waveformCtx.stroke();
     
     return result
 
