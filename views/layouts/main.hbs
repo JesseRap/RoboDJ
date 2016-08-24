@@ -24,28 +24,26 @@
     
     <div class="container">
         <div class="row">
-            <div class="col-sm-6 column" id="leftPlayer" style="text-align:center; border: 1px solid blue">
-                <h2>DECK 1</h2>
-                <table id="leftDeckTable" style="border: 1px solid red; margin: auto">
+            
+            {{#each deckIDs}}
+            
+            <div class="col-sm-6 column" id={{this.[0]}} style="text-align:center; border: 1px solid blue">
+                <h2>{{@key}}</h2>    
+                
+                <table id="{{this.[1]}}" style="border: 1px solid red; margin: auto">
                     <tr><td>
                         
-                        <input type="file" id="leftDeckUpload" accept=".wav,.mp3,.ogg" style="margin:auto">
-                        
-                        <!--
-                        <ul class="list-group">
-                            <li id="Streamer" role="presentation" class="list-group-item active"><button class="label">Wave Racer - Streamers</button></li>
-                            <li id="SummerPlants" role="presentation" class="list-group-item">Hi Tom - Summer Plants</li>
-                        </ul> -->
+                        <input type="file" id="{{this.[2]}}" accept=".wav,.mp3,.ogg" style="margin:auto">
                         
                     </td></tr>
                     <tr><td>
-                        <button id="playButton"><img src="static/start-stop-button.jpg" style="width:100px"></button>
-                        <input type="range" id="VolSliderL" value="100" style="width:50%; margin:auto; -webkit-appearance: slider-vertical">
+                        <button id="{{this.[3]}}"><img src="static/start-stop-button.jpg" style="width:100px"></button>
+                        <input type="range" id="{{this.[4]}}" value="100" style="width:50%; margin:auto; -webkit-appearance: slider-vertical">
                     </td></tr>
                     <tr><td>
-                        <div id="waveformL"></div>
-                        <canvas id="canvasLeft" class="visualizer" style="width:50%"></canvas>
-                        <canvas id="graphLeft" height="60" style="border:1px solid black; width:100%"></canvas>
+                        <div id="{{this.[5]}}"></div>
+                        <canvas id="{{this.[6]}}" class="visualizer" style="width:50%"></canvas>
+                        <canvas id="{{this.[7]}}" height="60" style="border:1px solid black; width:100%"></canvas>
                         
                     </td></tr>
                 </table>
@@ -53,39 +51,7 @@
             
             </div>
             
-            
-            
-            
-            <div class="col-sm-6 column" id="rightPlayer" style="text-align:center; border: 1px solid blue">
-                <h2>DECK 2</h2>
-                <table id="rightDeckTable" style="border: 1px solid red; margin: auto">
-                    <tr><td>
-                        
-                        <input type="file" id="rightDeckUpload" accept=".wav,.mp3,.ogg" style="margin:auto">
-                        
-                        <!--
-                        <ul class="list-group">
-                            <li id="Streamer" role="presentation" class="list-group-item active"><button class="label">Wave Racer - Streamers</button></li>
-                            <li id="SummerPlants" role="presentation" class="list-group-item">Hi Tom - Summer Plants</li>
-                        </ul> -->
-                        
-                    </td></tr>
-                    <tr><td>
-                        <button id="playButtonR"><img src="static/start-stop-button.jpg" style="width:100px"></button>
-                    </td></tr>
-                    <tr><td>
-                        <input type="range" id="VolSliderR" value="100" style="width:50%; margin:auto; -webkit-appearance: slider-vertical">
-                    </td></tr>
-                    <tr><td>
-                        <div id="waveformR"></div>
-                        <canvas id="canvasRight" class="visualizer" style="width:50%"></canvas>
-                        <canvas id="graphRight" height="60" style="border:1px solid black; width:100%"></canvas>
-                        
-                    </td></tr>
-                </table>
-            
-            
-            </div>
+            {{/each}}
             
         </div>
     </div>
@@ -109,7 +75,6 @@
     
     <canvas id="graph" height="200" width="100%" style="border:1px solid black"></canvas>
     -->
-    
     <script src="{{audio}}"></script>
     <script src="{{tests}}"></script>
 </body>

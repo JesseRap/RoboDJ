@@ -16,7 +16,7 @@ var hiddenWS = WaveSurfer.create({
 
 
 // SET EVENT HANDLER FOR PLAY/PAUSE BUTTONS
-$("#playButton").on("click", playPauseLeft)
+$("#playButtonL").on("click", playPauseLeft)
 $("#playButtonR").on("click", playPauseRight)
 $("#hiddenPlayPause").on("click", playPauseHidden)
 
@@ -58,14 +58,14 @@ function playPause(ws) {
                 // THEN START THE DECK WHEN SYNCED UP
                 
                 var startTime = Date.now();
-                // GET THE TIME UNTIL THE RIGHT DECK HITS THE NEXT BEAT
+                // GET THE TIME UNTIL THE OTHER DECK HITS THE NEXT BEAT
                 var currentTimeOther = wsOther.ws.backend.getCurrentTime();
                 var currentFrameOther = Math.round(currentTimeOther * 44100);
                 var nextBeatOther = findNextHighestInArray(wsOther.realBeatGrid, currentFrameOther);
                 var diffOther = nextBeatOther - currentFrameOther
                 
                 // GET THE DISTANCE BETWEEN THE LEFT DECK AND THE LAST BEAT
-                var currentTime = wsLeft.ws.backend.getCurrentTime();
+                var currentTime = ws.ws.backend.getCurrentTime();
                 var currentFrame = Math.round(currentTime * 44100);
                 var previousBeat = getPreviousHighestInArray(ws.realBeatGrid, currentFrame);
                 var diff = currentFrame - previousBeat;

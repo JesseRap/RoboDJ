@@ -5,6 +5,8 @@ var expressHBs = require('express-handlebars');
 var app = express();  
 var port = 3000;
 
+var deckIDs = {"DECK 1": ["leftPlayer", "leftDeckTable", "leftDeckUpload", "playButtonL", "VolSliderL", "waveformL", "canvasLeft", "graphLeft"], "DECK 2": ["rightPlayer", "rightDeckTable", "rightDeckUpload", "playButtonR", "VolSliderR", "waveformR", "canvasRight", "graphRight"] };
+
 app.use('/static', express.static(__dirname + '/static'));
 
 app.set('port', port)
@@ -20,7 +22,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.get('/', (request, response) => {  
   response.render(path.join(__dirname, 'views/layouts/main'), {
     audio: 'static/audio.js',
-    tests: 'static/tests.js'
+    tests: 'static/tests.js',
+    deckIDs: deckIDs
   })
 })
 
