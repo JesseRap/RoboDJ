@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.0.52/wavesurfer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.bundle.js"></script>
+    <link rel="stylesheet" type='text/css' href='static/styles.css'>
     <style>
     </style>
 </head>
@@ -21,14 +22,14 @@
         </div>
     </div>
     
-    <div class="container">
+    <div class="container gradient">
         <div class="row">
             <div class="col-sm-6 column" id="leftPlayer" style="text-align:center; border: 1px solid blue">
                 <h2>DECK 1</h2>
                 <table id="leftDeckTable" style="border: 1px solid red; margin: auto">
                     <tr><td>
                         
-                        <input type="file" id="leftDeckUpload" accept=".wav,.mp3,.ogg">
+                        <input type="file" id="leftDeckUpload" accept=".wav,.mp3,.ogg" style="margin:auto">
                         
                         <!--
                         <ul class="list-group">
@@ -38,11 +39,8 @@
                         
                     </td></tr>
                     <tr><td>
-                        <button id="playButton">Play/Pause</button>
-                        <button id="metronomeButton">Metronome ON/OFF</button>
-                    </td></tr>
-                    <tr><td>
-                        <input type="range" id="VolSliderL" value="100" style="width:50%; margin:auto">
+                        <button id="playButton"><img src="static/start-stop-button.jpg" style="width:100px"></button>
+                        <input type="range" id="VolSliderL" value="100" style="width:50%; margin:auto; -webkit-appearance: slider-vertical">
                     </td></tr>
                     <tr><td>
                         <div id="waveformL"></div>
@@ -63,7 +61,7 @@
                 <table id="rightDeckTable" style="border: 1px solid red; margin: auto">
                     <tr><td>
                         
-                        <input type="file" id="rightDeckUpload" accept=".wav,.mp3,.ogg">
+                        <input type="file" id="rightDeckUpload" accept=".wav,.mp3,.ogg" style="margin:auto">
                         
                         <!--
                         <ul class="list-group">
@@ -73,10 +71,10 @@
                         
                     </td></tr>
                     <tr><td>
-                        <button id="playButtonR">Play/Pause</button>
+                        <button id="playButtonR"><img src="static/start-stop-button.jpg" style="width:100px"></button>
                     </td></tr>
                     <tr><td>
-                        <input type="range" id="VolSliderR" value="100" style="width:50%; margin:auto">
+                        <input type="range" id="VolSliderR" value="100" style="width:50%; margin:auto; -webkit-appearance: slider-vertical">
                     </td></tr>
                     <tr><td>
                         <div id="waveformR"></div>
@@ -91,6 +89,7 @@
             
         </div>
     </div>
+    <button id="metronomeButton" style="margin:auto">Metronome ON/OFF</button>
     <input type="range" id="xFader" value="50" style="width:50%; margin:auto">
     <div id="hiddenContainer">
     <div id="hiddenDiv"></div>

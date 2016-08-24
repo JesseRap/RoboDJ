@@ -1,0 +1,10 @@
+.gradient {
+  height: 100px;
+  background-color: lightgray;
+  background-image:
+    linear-gradient(
+      to right,
+      lightgray,
+      lightsteelblue 10%
+    );
+}
