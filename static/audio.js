@@ -13,12 +13,7 @@ var hiddenWS = WaveSurfer.create({
 });
 
 
-// THESE VARIABLES DEFINE WHETHER A DECK IS RUNNING
-var leftIsRunning = false,
-    rightIsRunning = false,
-    hiddenIsRunning = false,
-    leftIsLoaded = false,
-    rightIsLoaded = false;
+
 
 // SET EVENT HANDLER FOR PLAY/PAUSE BUTTONS
 $("#playButton").on("click", playPauseLeft)
@@ -51,6 +46,7 @@ function playPause(ws) {
             console.log("IS RUNNING, WILL STOP");
             ws.isRunning = false;
             ws.ws.pause();
+            clearInterval(setIntervalFunc);
         } else {
             if (wsOther.isRunning) {
                 // SET THE PLAYBACKRATE SO THAT THE SELECTED WS 
@@ -73,8 +69,10 @@ function playPause(ws) {
                 var currentFrame = Math.round(currentTime * 44100);
                 var previousBeat = getPreviousHighestInArray(ws.realBeatGrid, currentFrame);
                 var diff = currentFrame - previousBeat;
+                console.log("DIFF ", diffOther, diff);
+                // ws.ws.seekTo(previousBeat / ws.ws.backend.buffer.length);
                 
-                var delay = (diffOther/44100)*1000 + ((diff/44100)*1000) - 5;
+                var delay = (diffOther/44100)*1000 + ((diff/44100)*1000);
                 //if (delay < 0) {delay += BPMToInterval(wsLeft.bpm, 44100)}
                 console.log("GONNA START IN ", delay);
                 
@@ -82,13 +80,14 @@ function playPause(ws) {
                 console.log("THIS TOOK ", endTime - startTime);
                 setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true}, delay * (1/ws.playbackSpeed));
                 
-                ws.ws.play();
+                // ws.ws.play();
                 ws.isRunning = true;
             } else {
                 ws.ws.backend.playbackRate = 1;
                 ws.isRunning = true;
                 masterTempo = ws.BPM;
                 ws.ws.play();
+                startMetronome();
             }
         }
     }
@@ -101,6 +100,30 @@ function playPauseLeft() {
 function playPauseRight() {
     playPause(wsRight);
 }
+
+var setIntervalFunc;
+var metronomeOn = false;
+document.querySelector("#metronomeButton").addEventListener("click", function() {console.log("WTF"); if (metronomeOn) {metronomeOn=false} else {metronomeOn=true}});
+
+function startMetronome() {
+    console.log(metronomeOn);
+    if (metronomeOn) {
+        var startTime = new Date().getTime();
+        var currentBeat = 0;
+        var x = function() {
+            hiddenWS.play();
+            var y = new Date().getTime(); 
+            var timeShouldBe = startTime + (wsLeft.realBeatGrid[currentBeat]/44100)*1000;
+            var delay = timeShouldBe - y;
+            console.log(startTime, y, timeShouldBe, delay); 
+            // current = y; hiddenWS.play();
+            setIntervalFunc = setTimeout(x, delay);
+            currentBeat++;
+        };
+        x();
+    };
+}
+
 
 function playPauseLeft2() {
     // PLAY/PAUSE THE LEFT DECK
@@ -340,6 +363,31 @@ function isReady(ws) {
     getBPM(ws);
     getBeatArray(ws);
     findSegments(ws);
+    
+    hiddenWS.load("static/metronome.wav");
+    // TRYING TO GET A METRONOME TO PLAY
+    /*
+    ws.ws.on("audioprocess", function() {
+        // IF THE TRACK HITS A BEAT, PLAY THE METRONOME 
+        // console.log(ws.ws.getCurrentTime());
+        if (ws.realBeatGrid.indexOf(Math.round(ws.ws.getCurrentTime()*4410)) > -1) {
+            hiddenWS.play();
+        }
+    });
+    
+    ws.ws.on("play", function() {
+        // IF THE TRACK HITS A BEAT, PLAY THE METRONOME 
+        // console.log(ws.ws.getCurrentTime());
+        while (true) {
+            if (ws.realBeatGrid.indexOf(Math.round(ws.ws.getCurrentTime()*4410)) > -1) {
+                hiddenWS.play();
+            }
+            if (ws.ws.getCurrentTime() > 10) {
+                return;
+            }
+        }
+    });
+    */
 }
 
 wavesurferLeft.on('ready', function () {
@@ -1037,7 +1085,9 @@ function getBeatArray(ws) {
     var peakArray = getPeaksAtThreshold(ws);
     // NOT SURE IF THIS VALUE SHOULD BE ROUNDED OR NOT
     // INTERVAL IS THE SAMPLE DISTANCE BETWEEN BEATS
-    var interval = Math.round(BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate));
+    
+    //var interval = Math.round(BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate));
+    var interval = BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
     console.log(interval);
     
     var result = [];
@@ -1053,7 +1103,7 @@ function getBeatArray(ws) {
         var c = ws.ws.backend.buffer.getChannelData(0);
         for (var j = firstPeak; j < ws.ws.backend.buffer.length; j += interval) {
             peakGrid2.push(j)
-            for (var k = -100; k < 100; k++) {
+            for (var k = -10; k < 10; k++) {
                 if (peakArray.indexOf(Math.round(j+k)) > -1) {
                     peakGrid.push(j);
                     break
