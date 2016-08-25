@@ -1,10 +1,134 @@
+body {
+    background-color: black
+}
+
+.jumbotrun {
+    height: 200px;
+}
+
+.column {
+    background-color: hsl(0,0%,90%);
+    box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
+    inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
+    inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
+    inset hsla(0,0%,100%,.7) 0  2px 1px 7px, /* top HL */
+    
+    hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
+    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
+}
+
+
+.metal {
+  outline: none;
+
+  color: hsla(0,0%,20%,1);
+  text-shadow: hsla(0,0%,40%,.5) 0 -1px 0, hsla(0,0%,100%,.6) 0 2px 1px;
+  
+  background-color: hsl(0,0%,90%);
+  box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
+    inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
+    inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
+    inset hsla(0,0%,100%,.7) 0  2px 1px 7px, /* top HL */
+    
+    hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
+    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
+  
+  transition: color .2s;
+}
+
+
+.linear {
+  /*width: 100px;*/
+
+  border-radius: .5em;
+  background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0)   6%, hsla(0,0%,100%, .1) 7.5%),
+    -webkit-repeating-linear-gradient(left, hsla(0,0%,  0%,0) 0%, hsla(0,0%,  0%,0)   4%, hsla(0,0%,  0%,.03) 4.5%),
+    -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0) 1.2%, hsla(0,0%,100%,.15) 2.2%),
+    
+    linear-gradient(180deg, hsl(0,0%,78%)  0%, 
+    hsl(0,0%,90%) 47%, 
+    hsl(0,0%,78%) 53%,
+    hsl(0,0%,70%)100%);
+}
+
 .gradient {
-  height: 100px;
   background-color: lightgray;
   background-image:
     linear-gradient(
-      to right,
-      lightgray,
-      lightsteelblue 10%
+      to right top,
+      #9498a1,
+      #c4c7ce
     );
+}
+
+#leftPlayer {
+  background-color: lightgray;
+  background-image:
+    linear-gradient(
+      to right top,
+      #9498a1,
+      #c4c7ce
+    );
+}
+
+#metronomeButton {
+    margin: 7px;
+}
+
+
+
+#leftDeckUpload, #rightDeckUpload {
+    height: 40px;
+    margin-top: 20px;
+}
+
+#rightPlayer {
+  background-color: lightgray;
+  background-image:
+    linear-gradient(
+      to left top,
+      #9498a1,
+      #c4c7ce
+    );
+}
+
+.waveform {
+    background-color: #4B0082;
+    margin-top: 15px;
+    border: 7px solid #2E0854;
+    box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
+    inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
+    inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
+    inset hsla(0,0%,100%,.7) 0  2px 1px 7px, /* top HL */
+    
+    /*hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
+    /*hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
+}
+
+.startButton {
+    height: 75px;
+    width: 100px;
+    background-image: url(start-stop-button.jpg);
+    background-size: cover;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.smallButton {
+    height: 50px;
+    width: 50px;
+    margin: 20px;
+    background-size: cover;
+}
+
+.rewind {
+    background-image: url(rewind-button.png);
+}
+
+.FF {
+    background-image: url(FF-button.png);
+}
+
+.jumobtron {
+    height: 00px;
 }

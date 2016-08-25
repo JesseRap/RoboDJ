@@ -12,7 +12,7 @@
 </head>
 <body>
 
-    <div class="jumbotron">
+    <div class="jumbotron container-fluid metal linear">
         <div class="container-fluid" style="text-align:center">
             <h1 style="margin:auto">RoboDJ</h1>
             <!--
@@ -27,23 +27,29 @@
             
             {{#each deckIDs}}
             
-            <div class="col-sm-6 column" id={{this.[0]}} style="text-align:center; border: 1px solid blue">
+            <div class="col-sm-6 column" id={{this.[0]}} style="text-align:center;">
                 <h2>{{@key}}</h2>    
                 
-                <table id="{{this.[1]}}" style="border: 1px solid red; margin: auto">
+                <table id="{{this.[1]}}" style="margin: auto">
                     <tr><td>
                         
                         <input type="file" id="{{this.[2]}}" accept=".wav,.mp3,.ogg" style="margin:auto">
                         
                     </td></tr>
-                    <tr><td>
-                        <button id="{{this.[3]}}"><img src="static/start-stop-button.jpg" style="width:100px"></button>
-                        <input type="range" id="{{this.[4]}}" value="100" style="width:50%; margin:auto; -webkit-appearance: slider-vertical">
+                    <tr><td class="metal linear">
+                        <button class="smallButton rewind"></button>
+                        <button id="{{this.[3]}}" class="startButton"></button>
+                        <button class="smallButton FF"></button>
+                        
+                        <!--
+                        <input type="range" id="{{this.[4]}}" value="100" style="height: 50px; margin:auto; -webkit-appearance: slider-vertical">
+                        -->
+                        
                     </td></tr>
                     <tr><td>
-                        <div id="{{this.[5]}}"></div>
+                        <div id="{{this.[5]}}" class="waveform"></div>
                         <canvas id="{{this.[6]}}" class="visualizer" style="width:50%"></canvas>
-                        <canvas id="{{this.[7]}}" height="60" style="border:1px solid black; width:100%"></canvas>
+                        <canvas id="{{this.[7]}}" height="60" style="border:1px solid black; width:100%; background-color: #fff; margin-bottom: 20px"></canvas>
                         
                     </td></tr>
                 </table>
@@ -54,14 +60,23 @@
             {{/each}}
             
         </div>
-    </div>
-    <button id="metronomeButton" style="margin:auto">Metronome ON/OFF</button>
-    <input type="range" id="xFader" value="50" style="width:50%; margin:auto">
-    <div id="hiddenContainer">
-    <div id="hiddenDiv"></div>
-    <canvas id="hiddenCanvas" syle="border:1px solid black"></canvas>
-        <button id="hiddenPlayPause">Play/Pause</button>
-    </div>
+        <div class="row" style="margin-bottom:20px">
+            <div class="col-sm-12 column" id={{this.[0]}} style="text-align:center">
+                <div class="metallic linear" style="text-align:center; height:100px">
+                <button id="metronomeButton">Metronome ON / OFF</button>
+                    <div style="background-color: #000; height:25px; text-align:center; width: 50%; margin: auto">
+                <input type="range" id="xFader" value="50" style="margin:auto; margin-bottom: 20px"></div>
+                </div>
+                    
+                    
+                    
+                <div id="hiddenContainer" style="display:none">
+                <div id="hiddenDiv"></div>
+                <canvas id="hiddenCanvas" syle="border:1px solid black"></canvas>
+                <button id="hiddenPlayPause">Play/Pause</button>
+            </div>
+        </div>
+    
     
     
     <!--

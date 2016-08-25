@@ -205,7 +205,8 @@ function stop(ws) {
 var wavesurferLeft = WaveSurfer.create({
     container: '#waveformL',
     normalize: true,
-    scrollParent: true
+    scrollParent: true,
+    cursorColor: "yellow",
 });
 console.log("CREATED WS INSTANCE");
 console.log(wavesurferLeft)
@@ -258,6 +259,13 @@ var wavesurferRight = WaveSurfer.create({
 });
 
 var wsRight = new wsObject(wavesurferRight);
+
+
+$(function() {
+    wsRight.RMSgraph = document.querySelector("#graphRight");
+    wsLeft.RMSgraph = document.querySelector("#graphLeft");
+})
+
 
 var wsBoth = [wsLeft, wsRight];
 
@@ -354,9 +362,9 @@ function isReady(ws) {
     // DRAW THE LOUDNESS GRAPH
     if (ws.ws === wavesurferLeft) {
         // draw()
-        // drawGraphL();
+        drawGraphL();
     } else {
-        // drawGraphR();
+        drawGraphR();
     }
     
     // GET THE BEAT GRID
@@ -496,12 +504,12 @@ $('.form-group').on('click','input[type=radio]',function() {
     $(this).closest('.radio-inline, .radio').addClass('checked');
 });
 
-document.querySelector("#VolSliderL").addEventListener("change", changeVolumeLeft);
-document.querySelector("#VolSliderR").addEventListener("change", changeVolumeRight);
+// document.querySelector("#VolSliderL").addEventListener("change", changeVolumeLeft);
+// document.querySelector("#VolSliderR").addEventListener("change", changeVolumeRight);
 document.querySelector("#xFader").addEventListener("change", xFade);
 
-document.querySelector("#VolSliderL").addEventListener("input", changeVolumeLeft);
-document.querySelector("#VolSliderR").addEventListener("input", changeVolumeRight);
+// document.querySelector("#VolSliderL").addEventListener("input", changeVolumeLeft);
+// document.querySelector("#VolSliderR").addEventListener("input", changeVolumeRight);
 document.querySelector("#xFader").addEventListener("input", xFade);
 
 var leftDeckUpload = document.querySelector("#leftDeckUpload");
@@ -542,13 +550,13 @@ function clearGraphRight() {
 function drawGraphL() {
     // Wrapper for drawing the left graph
     d = requestAnimationFrame(drawGraphL)
-    drawGraph(wavesurferLeft, document.querySelector("#graphLeft"), wsLeft.RMS_array)
+    drawGraph(wsLeft, document.querySelector("#graphLeft"))
 }
 
 function drawGraphR() {
     // Wrapper for drawing the left graph
     d = requestAnimationFrame(drawGraphR)
-    drawGraph(wavesurferRight, document.querySelector("#graphRight"), wsRight.RMS_array)
+    drawGraph(wsRight, document.querySelector("#graphRight"))
 }
 
 
@@ -557,7 +565,7 @@ function drawGraph(ws, canvas) {
     var context = canvas.getContext("2d");
     var rms_array = ws.RMS_array;
     
-    for (var x = 0.5; x < canvas.width; x += canvas.width / (ws.backend.buffer.duration / rms_step) ) {
+    for (var x = 0.5; x < canvas.width; x += canvas.width / (ws.ws.backend.buffer.duration / rms_step) ) {
         context.moveTo(x, 0);
         context.lineTo(x, canvas.height);
     }
@@ -568,7 +576,7 @@ function drawGraph(ws, canvas) {
     context.beginPath();
     for (var i=0; i<rms_array.length; i++) {
         var rms_pair = rms_array[i]
-        var scale = canvas.width / ws.backend.buffer.duration
+        var scale = canvas.width / ws.ws.backend.buffer.duration
         if (i == 0) {
             context.moveTo(scale * rms_pair[0], rms_pair[1]*-1)
         } else {
@@ -579,12 +587,14 @@ function drawGraph(ws, canvas) {
     context.stroke();
     
     context.beginPath();
-    var currentTime = ws.backend.getCurrentTime();
+    var currentTime = ws.ws.backend.getCurrentTime();
     
     context.moveTo(currentTime * scale, 0);
     context.lineTo(currentTime * scale, canvas.height);
     
     context.stroke()
+    
+    
     
 }
 
@@ -1311,6 +1321,22 @@ function findSegments(ws) {
     ws.waveformCtx.strokeStyle = "#090";
     console.log("STROKE");
     ws.waveformCtx.stroke();
+    
+    // DRAW SEGMENTS ON BOTTOM GRAPH
+    var cnvs = ws.RMSgraph;
+    var ctx = cnvs.getContext("2d")
+    var scale = cnvs.width / ws.ws.backend.buffer.length;
+    ctx.beginPath();
+    // ctx.lineWidth = 10;
+    for (var i = 0; i < result.length; i++) {
+        console.log(i,( (ws.realBeatGrid[result[i]]) / ws.ws.backend.buffer.length) * ws.waveformCanvas.width)
+        ctx.moveTo( ( (ws.realBeatGrid[result[i]]) / ws.ws.backend.buffer.length) * cnvs.width, 0);
+        ctx.lineTo( ( (ws.realBeatGrid[result[i]]) / ws.ws.backend.buffer.length) * cnvs.width, cnvs.height);
+    }
+    ctx.strokeStyle = "#000";
+    // ctx.lineWidth = 2;
+    console.log("STROKE");
+    ctx.stroke();
     
     return result
 
