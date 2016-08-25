@@ -38,7 +38,7 @@ function getPreviousHighestInArray(arr, int) {
 }
 
 function playPause(ws) {
-    var wsOther = wsBoth.slice().filter(function(a) {return a!== ws})[0];
+    var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
     console.log(wsOther);
     if (ws.isLoaded) {
         console.log("ISLOADED");
@@ -263,11 +263,13 @@ var wsRight = new wsObject(wavesurferRight);
 
 $(function() {
     wsRight.RMSgraph = document.querySelector("#graphRight");
+    wsRight.EQCanvas = document.querySelector("canvasRight")
     wsLeft.RMSgraph = document.querySelector("#graphLeft");
+    wsLeft.EQCanvas = document.querySelector("#canvasLeft");
 })
 
 
-var wsBoth = [wsLeft, wsRight];
+var wsArray = [wsLeft, wsRight];
 
     
 
@@ -293,7 +295,52 @@ console.log(gainNodeR);
 wavesurferRight.backend.setFilter(gainNodeR);
 */
 
-function draw() {
+function drawEQBars(ws) {
+    
+    var cnvs = $('.visualizer')[wsArray.indexOf(ws)];
+    var ctx = cnvs.getContext("2d");
+
+
+    var drawVisual;
+    
+    var an = ws.analyser;
+    // ws.gainNode.connect(an);
+    // an.fftSize = 256;
+    // var bufferLength = an.frequencyBinCount;
+    console.log(ws.bufferLength);
+    // ws.dataArray = new Uint8Array(ws.bufferLength);
+    // var cnvs = ws.EQCanvas;
+    // var ctx = cnvs.getContext("2d");
+    ctx.clearRect(0, 0, cnvs.width, cnvs.height);
+    console.log("EQ", ctx, an)
+    console.log(cnvs.width, ws.bufferLength, ws.dataArray);
+    function draw() {
+      drawVisual = requestAnimationFrame(draw);
+
+      an.getByteFrequencyData(ws.dataArray);
+
+      ctx.fillStyle = 'rgb(0, 0, 0)';
+      ctx.fillRect(0, 0, cnvs.width, cnvs.height);
+      
+         var barWidth = (cnvs.width / ws.bufferLength) * 2.5;
+      var barHeight;
+      var x = 0;
+
+      for(var i = 0; i < ws.bufferLength; i++) {
+        barHeight = ws.dataArray[i];
+
+        ctx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
+        ctx.fillRect(x,cnvs.height-barHeight/2,barWidth,barHeight/2);
+
+        x += barWidth + 1;
+      }
+    };
+
+    draw();
+};
+
+
+function draw2() {
     // DRAW THE OSCILLOSCOPE
 
     drawVisual = requestAnimationFrame(draw);
@@ -309,10 +356,10 @@ function draw() {
 
     canvasCtx.beginPath();
 
-    var sliceWidth = canvasL.width * 1.0 / bufferLengthL;
+    var sliceWidth = canvasL.width * 1.0 / ws.bufferLengthL;
     var x = 0;
 
-    for(var i = 0; i < bufferLengthL; i++) {
+    for(var i = 0; i < ws.bufferLengthL; i++) {
 
         var v = dataArrayL[i] / 128.0;
         var y = v * canvasL.height/2;
@@ -348,6 +395,7 @@ function isReady(ws) {
     // CONNECT ANALYSER
     ws.analyser = ws.context.createAnalyser();
     ws.gainNode.connect(ws.analyser)
+    ws.analyser.fftSize = 256;
     ws.bufferLength = ws.analyser.frequencyBinCount;
     console.log(ws.bufferLength);
     
@@ -366,6 +414,7 @@ function isReady(ws) {
     } else {
         drawGraphR();
     }
+    drawEQBars(ws);
     
     // GET THE BEAT GRID
     getBPM(ws);
@@ -373,29 +422,6 @@ function isReady(ws) {
     findSegments(ws);
     
     hiddenWS.load("static/metronome.wav");
-    // TRYING TO GET A METRONOME TO PLAY
-    /*
-    ws.ws.on("audioprocess", function() {
-        // IF THE TRACK HITS A BEAT, PLAY THE METRONOME 
-        // console.log(ws.ws.getCurrentTime());
-        if (ws.realBeatGrid.indexOf(Math.round(ws.ws.getCurrentTime()*4410)) > -1) {
-            hiddenWS.play();
-        }
-    });
-    
-    ws.ws.on("play", function() {
-        // IF THE TRACK HITS A BEAT, PLAY THE METRONOME 
-        // console.log(ws.ws.getCurrentTime());
-        while (true) {
-            if (ws.realBeatGrid.indexOf(Math.round(ws.ws.getCurrentTime()*4410)) > -1) {
-                hiddenWS.play();
-            }
-            if (ws.ws.getCurrentTime() > 10) {
-                return;
-            }
-        }
-    });
-    */
 }
 
 wavesurferLeft.on('ready', function () {

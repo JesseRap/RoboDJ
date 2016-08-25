@@ -36,6 +36,16 @@ body {
   transition: color .2s;
 }
 
+.metal2 {
+    box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
+    inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
+    inset hsla(0,0%,0%, .25) 0 -1px 0px 2px, /* bottom SD */
+    inset hsla(0,0%,100%,.7) 0  2px 1px 2px, /* top HL */
+    
+    hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
+    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
+}
+
 
 .linear {
   /*width: 100px;*/
@@ -92,10 +102,13 @@ body {
     );
 }
 
+
+
 .waveform {
     background-color: #4B0082;
     margin-top: 15px;
     border: 7px solid #2E0854;
+    border-radius: .1em;
     box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
     inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
     inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
@@ -127,6 +140,29 @@ body {
 
 .FF {
     background-image: url(FF-button.png);
+}
+
+.visualizer {
+    background-color: black;
+    border-radius: .25em;
+}
+
+.xFaderDiv {
+    background-color: #000; 
+    height:25px; 
+    text-align:center; 
+    width: 500px; 
+    margin: auto;
+    border-radius: .2em;
+    
+}
+
+#xFader {
+    margin-left: 50px; 
+    margin-top: 7px;
+    position: absolute;
+    height: 10px;
+    width: 400px;
 }
 
 .jumobtron {
