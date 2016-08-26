@@ -16,9 +16,17 @@ var hiddenWS = WaveSurfer.create({
 
 
 // SET EVENT HANDLER FOR PLAY/PAUSE BUTTONS
-$("#playButtonL").on("click", playPauseLeft)
-$("#playButtonR").on("click", playPauseRight)
-$("#hiddenPlayPause").on("click", playPauseHidden)
+$("#playButtonL").on("click", playPauseLeft);
+$("#playButtonR").on("click", playPauseRight);
+$("#hiddenPlayPause").on("click", playPauseHidden);
+
+$("#LPLeft").on("click", LPLeft);
+$("#BPLeft").on("click", BPLeft);
+$("#HPLeft").on("click", HPLeft);
+
+$("#LPRight").on("click", LPRight);
+$("#BPRight").on("click", BPRight);
+$("#HPRight").on("click", HPRight);
 
 
 
@@ -78,7 +86,7 @@ function playPause(ws) {
                 
                 var endTime = Date.now();
                 console.log("THIS TOOK ", endTime - startTime);
-                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true}, delay * (1/ws.playbackSpeed));
+                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true; ws.ws.backend.source.disconnect(); ws.ws.backend.source.connect(ws.analyser);}, delay * (1/ws.playbackSpeed));
                 
                 // ws.ws.play();
                 ws.isRunning = true;
@@ -87,6 +95,8 @@ function playPause(ws) {
                 ws.isRunning = true;
                 masterTempo = ws.BPM;
                 ws.ws.play();
+                ws.ws.backend.source.disconnect();
+                ws.ws.backend.source.connect(ws.analyser);
                 startMetronome();
             }
         }
@@ -99,6 +109,49 @@ function playPauseLeft() {
 
 function playPauseRight() {
     playPause(wsRight);
+}
+
+function toggleLP(ws) {
+    console.log("toggleLP");
+    if (ws.LP) {
+        console.log("turn LP off")
+        ws.LP.disconnect();
+        ws.ws.backend.source.connect(ws.analyser);
+        ws.LP = 0;
+    } else {
+        console.log("turn LP on")
+        ws.LP = ws.ws.backend.ac.createBiquadFilter();
+        ws.LP.type = "lowpass";
+        ws.LP.frequency.value = 500;
+        ws.ws.backend.source.disconnect();
+        ws.ws.backend.source.connect(ws.LP);
+        console.log(ws.LP,ws.gainNode,ws.ws.backend);
+        ws.LP.connect(ws.analyser);
+    }
+}
+
+function LPLeft() {
+    toggleLP(wsLeft);
+}
+
+function BPLeft() {
+    toggleBP(wsLeft);
+}
+
+function HPLeft() {
+    toggleHP(wsLeft);
+}
+
+function LPRight() {
+    toggleLP(wsRight);
+}
+
+function BPRight() {
+    toggleBP(wsRight);
+}
+
+function HPRight() {
+    toggleHP(wsRight);
 }
 
 var setIntervalFunc;
@@ -221,7 +274,8 @@ function wsObject(ws) {
     this.canvas = this.ws.container;
     this.context = this.ws.backend.ac;
     this.gainNode = this.context.createGain();
-    this.ws.backend.setFilter(this.gainNode);
+    // this.ws.backend.setFilter(this.gainNode);
+    
     this.RMS_array = [];
     this.waveformCanvas = $(this.ws.container).find("wave canvas")[0];
     this.waveformCtx = this.waveformCanvas.getContext("2d");
@@ -397,8 +451,13 @@ function isReady(ws) {
     ws.backend.setFilter(gainNode)
     */
     // CONNECT ANALYSER
+    ws.ws.backend.source.disconnect();
+    ws.gainNode.disconnect();
     ws.analyser = ws.context.createAnalyser();
-    ws.gainNode.connect(ws.analyser)
+    ws.ws.backend.source.connect(ws.analyser);
+    ws.gainNode.connect(ws.ws.backend.ac.destination);
+    ws.analyser.connect(ws.gainNode);
+    // ws.gainNode.connect(ws.analyser)
     ws.analyser.fftSize = 256;
     ws.bufferLength = ws.analyser.frequencyBinCount;
     console.log(ws.bufferLength);
