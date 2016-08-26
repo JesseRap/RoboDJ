@@ -86,7 +86,7 @@ function playPause(ws) {
                 
                 var endTime = Date.now();
                 console.log("THIS TOOK ", endTime - startTime);
-                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true; ws.ws.backend.source.disconnect(); ws.ws.backend.source.connect(ws.analyser);}, delay * (1/ws.playbackSpeed));
+                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true}, delay * (1/ws.playbackSpeed));
                 
                 // ws.ws.play();
                 ws.isRunning = true;
@@ -95,8 +95,6 @@ function playPause(ws) {
                 ws.isRunning = true;
                 masterTempo = ws.BPM;
                 ws.ws.play();
-                ws.ws.backend.source.disconnect();
-                ws.ws.backend.source.connect(ws.analyser);
                 startMetronome();
             }
         }
@@ -115,18 +113,56 @@ function toggleLP(ws) {
     console.log("toggleLP");
     if (ws.LP) {
         console.log("turn LP off")
-        ws.LP.disconnect();
-        ws.ws.backend.source.connect(ws.analyser);
+
+        ws.filters = ws.filters.filter(function(a) {return a!==ws.LP});
         ws.LP = 0;
+        ws.ws.backend.setFilters(ws.filters);
     } else {
         console.log("turn LP on")
         ws.LP = ws.ws.backend.ac.createBiquadFilter();
         ws.LP.type = "lowpass";
         ws.LP.frequency.value = 500;
-        ws.ws.backend.source.disconnect();
-        ws.ws.backend.source.connect(ws.LP);
         console.log(ws.LP,ws.gainNode,ws.ws.backend);
-        ws.LP.connect(ws.analyser);
+        ws.filters.push(ws.LP);
+        ws.ws.backend.setFilters(ws.filters);
+    }
+}
+
+function toggleBP(ws) {
+    console.log("toggleBP");
+    if (ws.BP) {
+        console.log("turn BP off")
+
+        ws.filters = ws.filters.filter(function(a) {return a!==ws.BP});
+        ws.BP = 0;
+        ws.ws.backend.setFilters(ws.filters);
+    } else {
+        console.log("turn BP on")
+        ws.BP = ws.ws.backend.ac.createBiquadFilter();
+        ws.BP.type = "bandpass";
+        ws.BP.frequency.value = 1000;
+        console.log(ws.BP,ws.gainNode,ws.ws.backend);
+        ws.filters.push(ws.BP);
+        ws.ws.backend.setFilters(ws.filters);
+    }
+}
+
+function toggleHP(ws) {
+    console.log("toggleHP");
+    if (ws.HP) {
+        console.log("turn HP off")
+
+        ws.filters = ws.filters.filter(function(a) {return a!==ws.HP});
+        ws.HP = 0;
+        ws.ws.backend.setFilters(ws.filters);
+    } else {
+        console.log("turn HP on")
+        ws.HP = ws.ws.backend.ac.createBiquadFilter();
+        ws.HP.type = "highpass";
+        ws.HP.frequency.value = 2000;
+        console.log(ws.HP,ws.gainNode,ws.ws.backend);
+        ws.filters.push(ws.HP);
+        ws.ws.backend.setFilters(ws.filters);
     }
 }
 
@@ -274,14 +310,16 @@ function wsObject(ws) {
     this.canvas = this.ws.container;
     this.context = this.ws.backend.ac;
     this.gainNode = this.context.createGain();
-    // this.ws.backend.setFilter(this.gainNode);
-    
+    this.ws.backend.setFilter(this.gainNode);
+    this.analyser = this.context.createAnalyser();
+    this.gainNode.connect(this.analyser);
     this.RMS_array = [];
     this.waveformCanvas = $(this.ws.container).find("wave canvas")[0];
     this.waveformCtx = this.waveformCanvas.getContext("2d");
     this.isRunning = false;
     this.isLoaded = false;
     this.playbackSpeed = 1;
+    this.filters = [this.gainNode, this.analyser];
 }
 
 /*
@@ -451,13 +489,6 @@ function isReady(ws) {
     ws.backend.setFilter(gainNode)
     */
     // CONNECT ANALYSER
-    ws.ws.backend.source.disconnect();
-    ws.gainNode.disconnect();
-    ws.analyser = ws.context.createAnalyser();
-    ws.ws.backend.source.connect(ws.analyser);
-    ws.gainNode.connect(ws.ws.backend.ac.destination);
-    ws.analyser.connect(ws.gainNode);
-    // ws.gainNode.connect(ws.analyser)
     ws.analyser.fftSize = 256;
     ws.bufferLength = ws.analyser.frequencyBinCount;
     console.log(ws.bufferLength);
