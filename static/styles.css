@@ -86,7 +86,15 @@ body {
     margin-top: 10px;
 }
 
+.buttonSelected {
+    color: white;
+    background-color: black;
+}
 
+.buttonDeselected {
+    color: black;
+    background-color: white;
+}
 
 #leftDeckUpload, #rightDeckUpload {
     height: 40px;

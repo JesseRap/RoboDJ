@@ -117,6 +117,7 @@ function toggleLP(ws) {
         ws.filters = ws.filters.filter(function(a) {return a!==ws.LP});
         ws.LP = 0;
         ws.ws.backend.setFilters(ws.filters);
+        ws.LPbutton.className = "buttonDeselected";
     } else {
         console.log("turn LP on")
         ws.LP = ws.ws.backend.ac.createBiquadFilter();
@@ -125,6 +126,7 @@ function toggleLP(ws) {
         console.log(ws.LP,ws.gainNode,ws.ws.backend);
         ws.filters.push(ws.LP);
         ws.ws.backend.setFilters(ws.filters);
+        ws.LPbutton.className = "buttonSelected";
     }
 }
 
@@ -136,6 +138,7 @@ function toggleBP(ws) {
         ws.filters = ws.filters.filter(function(a) {return a!==ws.BP});
         ws.BP = 0;
         ws.ws.backend.setFilters(ws.filters);
+        ws.BPbutton.className = "buttonDeselected";
     } else {
         console.log("turn BP on")
         ws.BP = ws.ws.backend.ac.createBiquadFilter();
@@ -144,6 +147,7 @@ function toggleBP(ws) {
         console.log(ws.BP,ws.gainNode,ws.ws.backend);
         ws.filters.push(ws.BP);
         ws.ws.backend.setFilters(ws.filters);
+        ws.BPbutton.className = "buttonSelected";
     }
 }
 
@@ -155,6 +159,8 @@ function toggleHP(ws) {
         ws.filters = ws.filters.filter(function(a) {return a!==ws.HP});
         ws.HP = 0;
         ws.ws.backend.setFilters(ws.filters);
+        
+        ws.HPbutton.className = "buttonDeselected";
     } else {
         console.log("turn HP on")
         ws.HP = ws.ws.backend.ac.createBiquadFilter();
@@ -163,6 +169,8 @@ function toggleHP(ws) {
         console.log(ws.HP,ws.gainNode,ws.ws.backend);
         ws.filters.push(ws.HP);
         ws.ws.backend.setFilters(ws.filters);
+        
+        ws.HPbutton.className = "buttonSelected";
     }
 }
 
@@ -192,7 +200,11 @@ function HPRight() {
 
 var setIntervalFunc;
 var metronomeOn = false;
-document.querySelector("#metronomeButton").addEventListener("click", function() {if (metronomeOn) {metronomeOn=false} else {metronomeOn=true}});
+document.querySelector("#metronomeButton").addEventListener("click", function() {if (metronomeOn) {metronomeOn=false; this.className="buttonDeselected"} else {metronomeOn=true; this.className="buttonSelected"}});
+
+/*
+this.className = this.className.replace( /(?:^|\s)buttonDeselected(?!\S)/g , '' ); this.classname += "buttonSelected";
+*/
 
 function startMetronome() {
     console.log(metronomeOn);
@@ -320,6 +332,11 @@ function wsObject(ws) {
     this.isLoaded = false;
     this.playbackSpeed = 1;
     this.filters = [this.gainNode, this.analyser];
+    
+    this.filterButtons = $($(this.ws.container).closest("table")[0]).find(".filter");
+    this.LPbutton = this.filterButtons[0];
+    this.BPbutton = this.filterButtons[1];
+    this.HPbutton = this.filterButtons[2];
 }
 
 /*
@@ -1203,8 +1220,8 @@ function getBeatArray(ws) {
         var n = 0;
         var temp = [];
         for (var j = i; j < ws.ws.backend.buffer.length; j += interval) {
-            score += c[Math.round(j)];
-            // score += findDistanceToNearestInArray(Math.round(j), peakArray)
+            // score += c[Math.round(j)];
+            score += findDistanceToNearestInArray(Math.round(j), peakArray)
             temp.push(Math.round(j));
             n++;
         }
