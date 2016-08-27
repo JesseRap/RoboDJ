@@ -101,6 +101,12 @@ body {
     margin-top: 20px;
 }
 
+.filter {
+    margin-top: 5px;
+    margin-left: 20px;
+}
+
+
 #rightPlayer {
   background-color: lightgray;
   background-image:
@@ -155,6 +161,12 @@ body {
     background-color: black;
     border-radius: .25em;
 }
+
+
+.dial {
+    font-size: 15px !important;
+}
+
 
 .xFaderDiv {
     background-color: #000; 

@@ -5,8 +5,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.0.52/wavesurfer.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.bundle.js"></script>
     <link rel="stylesheet" type='text/css' href='static/styles.css'>
+    <script src="http://cdn.rawgit.com/aterrien/jQuery-Knob/master/js/jquery.knob.js"></script>
     <style>
     </style>
 </head>
@@ -46,8 +46,17 @@
                         -->
                         
                     </td></tr>
+                    <tr class="dialRow"><td>
+                        <span>
+                        <input type="text" value="45%" class="dial">
+                        </span><span>
+                        <input type="text" value="45%" class="dial">
+                        </span><span>
+                        <input type="text" value="45%" class="dial">
+                        </span>
+                    </td></tr>
                     <tr><td>
-                        <button id={{this.[8]}} class="filter buttonDeselected" style="margin-top:15px">LP</button>
+                        <button id={{this.[8]}} class="filter buttonDeselected">LP</button>
                         <button id={{this.[9]}} class="filter buttonDeselected">BP</button>
                         <button id={{this.[10]}} class="filter buttonDeselected">HP</button>
                     </td></tr>
