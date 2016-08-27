@@ -30,39 +30,46 @@ var LPKnobs = $(".LPdial").knob({
     thickness: 0.4,
     width: 40,
     height: 40,
-    /*'release' : function (v) {
+    /* 'release' : function (v) {
         console.log(v);
     }*/
 });
+
+function g(ws) {
+    console.log('hello');
+    switch (j%3) {
+        case 0:
+            ws.LP.frequency.value = knobArray[j%3 + (3*i)];
+            break;
+        case 1:
+            ws.BP.frequency.value = knobArray[j%3 + (3*i)];
+            break;
+        case 2:
+            ws.HP.frequency.value = knobArray[j%3 + (3*i)];
+            break;
+        default:
+            console.log("DEFAULT");
+    }
+}
 
 /*
 $(function() {
     console.log("THIS"); 
     for (var i=0; i < wsArray.length; i++) {
-        var currentTable = $(knobArray[0]).closest('table')[0]
+        var currentTable = $(LPKnobs[i]).closest('table')[0]
         console.log(currentTable);
         var currentWS = wsArray.filter(function(a) {return a.HTMLtable === currentTable})[0];
         console.log(currentWS);
+        var helperFunc = function() {g(currentWS)};
+        
         for (var j=0; j < knobArray.length; j++) {
             var currentKnob = knobArray[j];
-            currentKnob.o['release'] = "function() {console.log('hello')}";
-            switch (j%3) {
-                case 0:
-                    currentWS.LP.frequency.value = knobArray[j%3 + (3*i)];
-                    break;
-                case 1:
-                    currentWS.BP.frequency.value = knobArray[j%3 + (3*i)];
-                    break;
-                case 2:
-                    currentWS.HP.frequency.value = knobArray[j%3 + (3*i)];
-                    break;
-                default:
-                    console.log("DEFAULT");
-            }
-        }
+            currentKnob.o['min'] = 80;
+        };
     };
 });
 */
+
 
 $(".BPdial").knob({
     // fgColor: "#00ABC6",
@@ -424,7 +431,7 @@ function wsObject(ws) {
     this.HP.frequency.value = 2000;
     
     this.filters = [this.gainNode, this.analyser, this.LP, this.BP, this.HP];
-    this.onFilterArray = [];
+    this.onFilterArray = [this.gainNode, this.analyser];
     
     
 }
