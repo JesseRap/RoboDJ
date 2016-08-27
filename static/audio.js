@@ -9,20 +9,83 @@ $(function() {
         var DRspans = $(wsArray[i].HTMLtable).find(".dialRow").find('span');
         console.log(i, wsArray[i].HTMLtable, DRspans);
         for (var j=0; j < DRspans.length; j++) {
-          DRspans[j].style.padding = "7px"
+          DRspans[j].style.padding = "7px";
+            var button = $(DRspans[j]).find('input')[0];
+            console.log(button.value);
+            // $(button).on("change", function() {console.log("HELLO")})
         };
-        $(DRspans[0]).closest("td")[0].style.paddingLeft = "15px";
-        $(DRspans[0]).closest("td")[0].style.paddingTop = "15px";
+        // $(DRspans[0]).closest("td")[0].style.paddingLeft = "10px";
+        $(DRspans[0]).closest("td")[0].style.paddingTop = "20px";
+        
     };
 });
 
-$(".dial").knob({
-    fgColor: "#00ABC6",
-    bgColor: "#666666",
-    thickness: 0.2,
+var knobArray = [];
+
+var LPKnobs = $(".LPdial").knob({
+    // fgColor: "#00ABC6",
+    // bgColor: "#666666",
+    fgColor: "#d6eaff",
+    bgColor: "#404040",
+    thickness: 0.4,
     width: 40,
-    height: 40
+    height: 40,
+    /*'release' : function (v) {
+        console.log(v);
+    }*/
 });
+
+/*
+$(function() {
+    console.log("THIS"); 
+    for (var i=0; i < wsArray.length; i++) {
+        var currentTable = $(knobArray[0]).closest('table')[0]
+        console.log(currentTable);
+        var currentWS = wsArray.filter(function(a) {return a.HTMLtable === currentTable})[0];
+        console.log(currentWS);
+        for (var j=0; j < knobArray.length; j++) {
+            var currentKnob = knobArray[j];
+            currentKnob.o['release'] = "function() {console.log('hello')}";
+            switch (j%3) {
+                case 0:
+                    currentWS.LP.frequency.value = knobArray[j%3 + (3*i)];
+                    break;
+                case 1:
+                    currentWS.BP.frequency.value = knobArray[j%3 + (3*i)];
+                    break;
+                case 2:
+                    currentWS.HP.frequency.value = knobArray[j%3 + (3*i)];
+                    break;
+                default:
+                    console.log("DEFAULT");
+            }
+        }
+    };
+});
+*/
+
+$(".BPdial").knob({
+    // fgColor: "#00ABC6",
+    // bgColor: "#666666",
+    fgColor: "#d6eaff",
+    bgColor: "#404040",
+    thickness: 0.4,
+    width: 40,
+    height: 40,
+    'release' : function (v) { console.log(v) }
+});
+
+$(".HPdial").knob({
+    // fgColor: "#00ABC6",
+    // bgColor: "#666666",
+    fgColor: "#d6eaff",
+    bgColor: "#404040",
+    thickness: 0.4,
+    width: 40,
+    height: 40,
+    'release' : function (v) { console.log(v) }
+});
+
 
 // CREATE THE "HIDDEN" WAVESURFER FOR BPM ANALYSIS
 var hiddenWS,
@@ -133,65 +196,53 @@ function playPauseRight() {
 
 function toggleLP(ws) {
     console.log("toggleLP");
-    if (ws.LP) {
-        console.log("turn LP off")
-
-        ws.filters = ws.filters.filter(function(a) {return a!==ws.LP});
-        ws.LP = 0;
-        ws.ws.backend.setFilters(ws.filters);
+    console.log(ws.onFilterArray);
+    if (ws.onFilterArray.indexOf(ws.LP) > -1) {
+        console.log("turn LP off");
+        // ws.filters = ws.filters.filter(function(a) {return a!==ws.LP});        
+        ws.onFilterArray = ws.onFilterArray.filter(function(a) {return a !== ws.LP});
+        ws.ws.backend.setFilters(ws.onFilterArray);
         ws.LPbutton.className = "filter buttonDeselected";
     } else {
         console.log("turn LP on")
-        ws.LP = ws.ws.backend.ac.createBiquadFilter();
-        ws.LP.type = "lowpass";
-        ws.LP.frequency.value = 500;
+        ws.onFilterArray.push(ws.LP);
         console.log(ws.LP,ws.gainNode,ws.ws.backend);
-        ws.filters.push(ws.LP);
-        ws.ws.backend.setFilters(ws.filters);
+        // ws.filters.push(ws.LP);
+        ws.ws.backend.setFilters(ws.onFilterArray);
         ws.LPbutton.className = "filter buttonSelected";
     }
 }
 
 function toggleBP(ws) {
     console.log("toggleBP");
-    if (ws.BP) {
-        console.log("turn BP off")
-
-        ws.filters = ws.filters.filter(function(a) {return a!==ws.BP});
-        ws.BP = 0;
-        ws.ws.backend.setFilters(ws.filters);
+    console.log(ws.onFilterArray);
+    if (ws.onFilterArray.indexOf(ws.BP) > -1) {
+        console.log("turn BP off");
+        ws.onFilterArray = ws.onFilterArray.filter(function(a) {return a !== ws.BP});
+        ws.ws.backend.setFilters(ws.onFilterArray);
         ws.BPbutton.className = "filter buttonDeselected";
     } else {
         console.log("turn BP on")
-        ws.BP = ws.ws.backend.ac.createBiquadFilter();
-        ws.BP.type = "bandpass";
-        ws.BP.frequency.value = 1000;
+        ws.onFilterArray.push(ws.BP);
         console.log(ws.BP,ws.gainNode,ws.ws.backend);
-        ws.filters.push(ws.BP);
-        ws.ws.backend.setFilters(ws.filters);
+        ws.ws.backend.setFilters(ws.onFilterArray);
         ws.BPbutton.className = "filter buttonSelected";
     }
 }
 
 function toggleHP(ws) {
     console.log("toggleHP");
-    if (ws.HP) {
-        console.log("turn HP off")
-
-        ws.filters = ws.filters.filter(function(a) {return a!==ws.HP});
-        ws.HP = 0;
-        ws.ws.backend.setFilters(ws.filters);
-        
+    console.log(ws.onFilterArray);
+    if (ws.onFilterArray.indexOf(ws.HP) > -1) {
+        console.log("turn HP off");
+        ws.onFilterArray = ws.onFilterArray.filter(function(a) {return a !== ws.HP});
+        ws.ws.backend.setFilters(ws.onFilterArray);
         ws.HPbutton.className = "filter buttonDeselected";
     } else {
         console.log("turn HP on")
-        ws.HP = ws.ws.backend.ac.createBiquadFilter();
-        ws.HP.type = "highpass";
-        ws.HP.frequency.value = 2000;
+        ws.onFilterArray.push(ws.HP);
         console.log(ws.HP,ws.gainNode,ws.ws.backend);
-        ws.filters.push(ws.HP);
-        ws.ws.backend.setFilters(ws.filters);
-        
+        ws.ws.backend.setFilters(ws.onFilterArray);
         ws.HPbutton.className = "filter buttonSelected";
     }
 }
@@ -353,13 +404,29 @@ function wsObject(ws) {
     this.isRunning = false;
     this.isLoaded = false;
     this.playbackSpeed = 1;
-    this.filters = [this.gainNode, this.analyser];
     this.HTMLtable = $(this.ws.container).closest("table")[0]
     
     this.filterButtons = $(this.HTMLtable).find(".filter");
     this.LPbutton = this.filterButtons[0];
     this.BPbutton = this.filterButtons[1];
     this.HPbutton = this.filterButtons[2];
+    
+    this.LP = this.ws.backend.ac.createBiquadFilter();
+    this.LP.type = "lowpass";
+    this.LP.frequency.value = 500;
+    
+    this.BP = this.ws.backend.ac.createBiquadFilter();
+    this.BP.type = "bandpass";
+    this.BP.frequency.value = 1000;
+    
+    this.HP = this.ws.backend.ac.createBiquadFilter();
+    this.HP.type = "highpass";
+    this.HP.frequency.value = 2000;
+    
+    this.filters = [this.gainNode, this.analyser, this.LP, this.BP, this.HP];
+    this.onFilterArray = [];
+    
+    
 }
 
 /*
@@ -1243,8 +1310,8 @@ function getBeatArray(ws) {
         var n = 0;
         var temp = [];
         for (var j = i; j < ws.ws.backend.buffer.length; j += interval) {
-            // score += c[Math.round(j)];
-            score += findDistanceToNearestInArray(Math.round(j), peakArray)
+            score += c[Math.round(j)];
+            // score += findDistanceToNearestInArray(Math.round(j), peakArray)
             temp.push(Math.round(j));
             n++;
         }
