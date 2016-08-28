@@ -31,9 +31,11 @@ var LPKnobs = $(".LPdial").knob({
     thickness: 0.4,
     width: 40,
     height: 40,
+    max: 1000,
+    step: 10,
     'change' : function (v) {
         var currentWS = wsArray[knobArray.indexOf(this)%2];
-        currentWS.LP.frequency.value = v*10;
+        currentWS.LP.frequency.value = v;
     }
 });
 
@@ -44,9 +46,12 @@ var BPKnobs = $(".BPdial").knob({
     thickness: 0.4,
     width: 40,
     height: 40,
+    min: 500,
+    max: 1500,
+    step: 10,
     'change' : function (v) {
         var currentWS = wsArray[knobArray.indexOf(this)%2];
-        currentWS.BP.frequency.value = v*10;
+        currentWS.BP.frequency.value = v;
     }
 });
 
@@ -57,9 +62,11 @@ var HPKnobs = $(".HPdial").knob({
     thickness: 0.4,
     width: 40,
     height: 40,
+    max: 10000,
+    step: 100,
     'change' : function (v) {
         var currentWS = wsArray[knobArray.indexOf(this)%2];
-        currentWS.HP.frequency.value = v*100;
+        currentWS.HP.frequency.value = v;
     }
 });
 
