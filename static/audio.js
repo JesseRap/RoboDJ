@@ -20,6 +20,26 @@ $(function() {
     };
 });
 
+$(function() {
+    $('#xFader').slider({
+        handle: "custom",
+        tooltip: 'hide',
+        min: 0,
+        max: 100,
+        step: 0.1,
+        value: 50
+    });
+});
+
+$("#xFader").on('change', function(){xFade()});
+
+$(function() {
+    $(".slider").each(function(idx, el) {el.style['width']= "400px"; el.style["marginTop"] = "2px"})
+    $("#xFaderDiv").find(".slider-handle").each(function(idx, el) {console.log(el)})
+});
+
+
+
 var knobArray = [];
 
 
@@ -36,6 +56,7 @@ var LPKnobs = $(".LPdial").knob({
     'change' : function (v) {
         var currentWS = wsArray[knobArray.indexOf(this)%2];
         currentWS.LP.frequency.value = v;
+        console.log(currentWS, this, v);
     }
 });
 
@@ -52,6 +73,7 @@ var BPKnobs = $(".BPdial").knob({
     'change' : function (v) {
         var currentWS = wsArray[knobArray.indexOf(this)%2];
         currentWS.BP.frequency.value = v;
+        console.log(currentWS, this, v);
     }
 });
 
@@ -67,6 +89,7 @@ var HPKnobs = $(".HPdial").knob({
     'change' : function (v) {
         var currentWS = wsArray[knobArray.indexOf(this)%2];
         currentWS.HP.frequency.value = v;
+        console.log(currentWS, this, v);
     }
 });
 

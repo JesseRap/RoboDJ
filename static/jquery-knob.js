@@ -667,9 +667,12 @@
                         }
                     }
                 );
-
-            this.$c.bind("mousewheel DOMMouseScroll", mw);
-            this.$.bind("mousewheel DOMMouseScroll", mw);
+            
+            /******************************************************/
+            /* COMMENT THESE OUT TO DISABLE SCROLLING THE KNOB
+            WITH THE MOUSEWHEEL, WHICH SEEMS NOT TO WORK PROPERLY */
+            // this.$c.bind("mousewheel DOMMouseScroll", mw);
+            // this.$.bind("mousewheel DOMMouseScroll", mw);
         };
 
         this.init = function () {

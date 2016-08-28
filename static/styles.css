@@ -46,6 +46,9 @@ body {
     hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
 }
 
+#canvasLeft, #canvasRight {
+    margin-bottom: 15px !important;
+}
 
 .linear {
   /*width: 100px;*/
@@ -73,6 +76,12 @@ body {
     );
 }
 
+#leftPlayer, #rightPlayer {
+    background-image: url('black_wood.jpeg');
+    background-repeat: round;
+}
+
+/*
 #leftPlayer {
   background-color: lightgray;
   background-image:
@@ -82,6 +91,7 @@ body {
       #c4c7ce
     );
 }
+*/
 
 #metronomeButton {
     margin: 5px;
@@ -108,7 +118,11 @@ body {
     margin-top: 5px;
 }
 
+h2 {
+    color: white
+}
 
+/*
 #rightPlayer {
   background-color: lightgray;
   background-image:
@@ -118,7 +132,7 @@ body {
       #c4c7ce
     );
 }
-
+*/
 
 
 .waveform {
@@ -149,6 +163,8 @@ body {
     width: 50px;
     margin: 20px;
     background-size: cover;
+    position: relative;
+    margin-top: 30px;
 }
 
 .rewind {
@@ -173,13 +189,18 @@ body {
 .xFaderDiv {
     background-color: #000; 
     height:25px; 
-    text-align:center; 
     width: 500px; 
     margin: auto;
     border-radius: .2em;
+    margin-top: 40px;
     
 }
 
+#xFader {
+    margin-right: 50px;
+}
+
+/*
 #xFader {
     margin-left: 50px; 
     margin-top: 7px;
@@ -187,7 +208,15 @@ body {
     height: 10px;
     width: 400px;
 }
+*/
 
+.slider-handle.custom::before {
+    line-height: 20px;
+    font-size: 50px;
+    font-family: FontAwesome !important;
+    content: "\f146" !important;
+    color: black;
+}
 .jumobtron {
     height: 00px;
 }
