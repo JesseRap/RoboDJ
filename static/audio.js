@@ -22,6 +22,7 @@ $(function() {
 
 var knobArray = [];
 
+
 var LPKnobs = $(".LPdial").knob({
     // fgColor: "#00ABC6",
     // bgColor: "#666666",
@@ -30,67 +31,36 @@ var LPKnobs = $(".LPdial").knob({
     thickness: 0.4,
     width: 40,
     height: 40,
-    /* 'release' : function (v) {
-        console.log(v);
-    }*/
-});
-
-function g(ws) {
-    console.log('hello');
-    switch (j%3) {
-        case 0:
-            ws.LP.frequency.value = knobArray[j%3 + (3*i)];
-            break;
-        case 1:
-            ws.BP.frequency.value = knobArray[j%3 + (3*i)];
-            break;
-        case 2:
-            ws.HP.frequency.value = knobArray[j%3 + (3*i)];
-            break;
-        default:
-            console.log("DEFAULT");
+    'change' : function (v) {
+        var currentWS = wsArray[knobArray.indexOf(this)%2];
+        currentWS.LP.frequency.value = v*10;
     }
-}
-
-/*
-$(function() {
-    console.log("THIS"); 
-    for (var i=0; i < wsArray.length; i++) {
-        var currentTable = $(LPKnobs[i]).closest('table')[0]
-        console.log(currentTable);
-        var currentWS = wsArray.filter(function(a) {return a.HTMLtable === currentTable})[0];
-        console.log(currentWS);
-        var helperFunc = function() {g(currentWS)};
-        
-        for (var j=0; j < knobArray.length; j++) {
-            var currentKnob = knobArray[j];
-            currentKnob.o['min'] = 80;
-        };
-    };
 });
-*/
 
 
-$(".BPdial").knob({
-    // fgColor: "#00ABC6",
-    // bgColor: "#666666",
+var BPKnobs = $(".BPdial").knob({
     fgColor: "#d6eaff",
     bgColor: "#404040",
     thickness: 0.4,
     width: 40,
     height: 40,
-    'release' : function (v) { console.log(v) }
+    'change' : function (v) {
+        var currentWS = wsArray[knobArray.indexOf(this)%2];
+        currentWS.BP.frequency.value = v*10;
+    }
 });
 
-$(".HPdial").knob({
-    // fgColor: "#00ABC6",
-    // bgColor: "#666666",
+
+var HPKnobs = $(".HPdial").knob({
     fgColor: "#d6eaff",
     bgColor: "#404040",
     thickness: 0.4,
     width: 40,
     height: 40,
-    'release' : function (v) { console.log(v) }
+    'change' : function (v) {
+        var currentWS = wsArray[knobArray.indexOf(this)%2];
+        currentWS.HP.frequency.value = v*100;
+    }
 });
 
 
