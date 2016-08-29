@@ -755,6 +755,9 @@ leftDeckUpload.addEventListener("change", function() {
     if (leftDeckUpload.files.length > 0) {
         clearGraphLeft();
         var track = leftDeckUpload.files[0];
+        var trackTitle = track['name'];
+        trackTitle = trackTitle.replace(".mp3", "");
+        setLoadBtnText(wsLeft, trackTitle);
         wavesurferLeft.loadBlob(track);
         wsLeft.currentTrack = track;
     }
@@ -765,11 +768,21 @@ rightDeckUpload.addEventListener("change", function() {
     if (rightDeckUpload.files.length > 0) {
         clearGraphRight();
         var track = rightDeckUpload.files[0];
+        var trackTitle = track['name'];
+        trackTitle = trackTitle.replace(".mp3", "");
+        setLoadBtnText(wsRight, trackTitle);
         wavesurferRight.loadBlob(track);
         currentTrackR = track;
         wsRight.currentTrack = track;
     }
 });
+
+function setLoadBtnText (ws, text) {
+    var currentUploader = $(ws.HTMLtable).find('.custom-file-input')[0];
+    var rule = '#' + currentUploader.id + '::before' + " {"  + 'content: "' + text + '"}';
+    document.styleSheets[4].insertRule(rule, document.styleSheets[4].cssRules.length);
+}
+
 
 function clearGraphLeft() {
     wsLeft.RMS_array = [];
