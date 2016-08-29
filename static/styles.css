@@ -106,8 +106,8 @@ body {
 }
 
 #leftPlayer, #rightPlayer {
-    background-image: url('black_wood.jpeg');
-    background-repeat: round;
+    background-image: url('black_wood_2.png');
+    background-size: cover;
     min-width: 350px;
     display: inline-block;
     margin-top: 20px;
