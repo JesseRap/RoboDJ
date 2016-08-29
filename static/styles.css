@@ -6,7 +6,12 @@ body {
     height: 200px;
 }
 
+.deck {
+}
+
+
 .column {
+    border-radius: 5px;
     background-color: hsl(0,0%,90%);
     box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
     inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
@@ -18,11 +23,12 @@ body {
 }
 
 
+
 .metal {
   outline: none;
 
   color: hsla(0,0%,20%,1);
-  text-shadow: hsla(0,0%,40%,.5) 0 -1px 0, hsla(0,0%,100%,.6) 0 2px 1px;
+  text-shadow: hsla(0,0%,40%,.5) 0 -2px 0, hsla(0,0%,100%,.6) 0 2px 1px;
   
   background-color: hsl(0,0%,90%);
   box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
@@ -58,7 +64,7 @@ body {
     -webkit-repeating-linear-gradient(left, hsla(0,0%,  0%,0) 0%, hsla(0,0%,  0%,0)   4%, hsla(0,0%,  0%,.03) 4.5%),
     -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0) 1.2%, hsla(0,0%,100%,.15) 2.2%),
     
-    linear-gradient(180deg, hsl(0,0%,78%)  0%, 
+    linear-gradient(150deg, hsl(0,0%,78%)  0%, 
     hsl(0,0%,90%) 47%, 
     hsl(0,0%,78%) 53%,
     hsl(0,0%,70%)100%);
@@ -76,9 +82,33 @@ body {
     );
 }
 
+.bottom {
+    margin-top: 25px;
+}
+
+.deckContainer {
+    box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+    display: inline-block;
+    text-align: center;
+}
+
 #leftPlayer, #rightPlayer {
     background-image: url('black_wood.jpeg');
     background-repeat: round;
+    min-width: 350px;
+    display: inline-block;
+}
+
+#leftPlayer {
+    width: 40%;
+    margin-right: 2%;
+    margin-left: 2%;
+}
+
+#rightPlayer {
+    width: 40%;
+    margin-left: 2%;
+    margin-right: 2%;
 }
 
 /*
@@ -121,10 +151,16 @@ body {
 h2 {
     color: white;
     padding-top: 15px;
+    font-family: 'Oswald', sans-serif;
+}
+
+h1:hover, h2:hover {
+    cursor: default;
 }
 
 h1 {
     font-size: 60px !important;
+    font-family: 'Oswald', sans-serif;
 }
 
 /*
@@ -210,15 +246,7 @@ h1 {
     width: 80% !important;
 }
 
-/*
-#xFader {
-    margin-left: 50px; 
-    margin-top: 7px;
-    position: absolute;
-    height: 10px;
-    width: 400px;
-}
-*/
+
 
 .slider-handle.custom::before {
     line-height: 20px;
@@ -227,6 +255,11 @@ h1 {
     content: "\f146" !important;
     color: black;
 }
+
+.slider-handle {
+    transform: rotate(90deg) translateX(-50%);
+}
+
 .jumobtron {
     padding: 200px !important;
 }

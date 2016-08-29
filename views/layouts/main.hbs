@@ -5,6 +5,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.0.52/wavesurfer.min.js"></script>
     
     <script src="static/jquery-knob.js"></script>
@@ -33,17 +35,17 @@
     </div>
     
     <div class="container">
-        <div class="row">
+        <div class="row" style="text-align:center">
+            <span>
             
             {{#each deckIDs}}
-            
-            <div class="col-sm-6 column" id={{this.[0]}} style="text-align:center;">
+            <div class="column" id={{this.[0]}}>
                 <h2>{{@key}}</h2>    
                 
                 <table id="{{this.[1]}}" style="margin: auto">
                     <tr><td>
                         
-                        <input type="file" id="{{this.[2]}}" accept=".wav,.mp3,.ogg" style="margin:auto; margin-bottom:10px; height:20px; background-color:#C9C9C9">
+                        <input type="file" id="{{this.[2]}}" accept=".wav,.mp3,.ogg" style="margin:auto; margin-bottom:10px; height:20px; background-color:#C9C9C9; height: 25px; border: 2px solid black">
                         
                     </td></tr>
                     <tr><td class="metal linear">
@@ -82,10 +84,10 @@
             </div>
             
             {{/each}}
-            
+            </span>
         </div>
         <div class="row" style="margin-bottom:20px">
-            <div class="col-sm-12 column linear" id={{this.[0]}} style="text-align:center">
+            <div class="col-sm-12 column linear bottom" id={{this.[0]}} style="text-align:center">
                 <div class="" style="text-align:center; height:72px; padding:0px; display: inline-block; align-content: center">
                 
                     <div class="xFaderDiv metal2">
