@@ -4,3 +4,5 @@ node_modules
 *.m3u
 *.jpg
 *.ogg
+*.map
+*.sccs
