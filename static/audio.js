@@ -140,6 +140,8 @@ function getPreviousHighestInArray(arr, int) {
 function playPause(ws) {
     var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
     console.log(wsOther);
+    var currentPlayer = $(ws.HTMLtable).closest('div')[0];
+    console.log(currentPlayer);
     if (ws.isLoaded) {
         console.log("ISLOADED");
         if (ws.isRunning) {
@@ -147,6 +149,7 @@ function playPause(ws) {
             ws.isRunning = false;
             ws.ws.pause();
             clearInterval(setIntervalFunc);
+            currentPlayer.className = "column";
         } else {
             if (wsOther.isRunning) {
                 // SET THE PLAYBACKRATE SO THAT THE SELECTED WS 
@@ -178,7 +181,7 @@ function playPause(ws) {
                 
                 var endTime = Date.now();
                 console.log("THIS TOOK ", endTime - startTime);
-                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true}, delay * (1/ws.playbackSpeed));
+                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true; currentPlayer.className = "columnSelected";}, delay * (1/ws.playbackSpeed));
                 
                 // ws.ws.play();
                 ws.isRunning = true;
@@ -188,6 +191,7 @@ function playPause(ws) {
                 masterTempo = ws.BPM;
                 ws.ws.play();
                 startMetronome();
+                currentPlayer.className = "columnSelected";
             }
         }
     }
