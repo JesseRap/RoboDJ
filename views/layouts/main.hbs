@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.0.52/wavesurfer.min.js"></script>
     
     <script src="static/jquery-knob.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.2.0/bootstrap-slider.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.2.0/css/bootstrap-slider.css">
     
@@ -17,6 +18,7 @@
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" type="text/css">
     
     <link rel="stylesheet" type='text/css' href='static/styles.css'>
+    <link rel="stylesheet" type='text/css' href='static/myStyles.css'>
 
     
     <style>
@@ -24,8 +26,8 @@
 </head>
 <body>
 
-    <div class="jumbotron container-fluid metal linear" style="margin:20px">
-        <div class="container-fluid" style="text-align:center">
+    <div class="myJumbotron metal linear">
+        <div class="myContainer">
             <h1 style="margin:auto">RoboDJ</h1>
             <!--
             <button id="login-button">LOG IN</button>
@@ -34,12 +36,12 @@
         </div>
     </div>
     
-    <div class="container">
-        <div class="row" style="text-align:center">
+    <div class="myContainer">
+        <div class="" style="text-align:center">
             <span>
             
             {{#each deckIDs}}
-            <div class="column" id={{this.[0]}}>
+            <div class="column2" id={{this.[0]}}>
                 <h2>{{@key}}</h2>    
                 
                 <table id="{{this.[1]}}" style="margin: auto">
@@ -73,10 +75,27 @@
                         <button id={{this.[10]}} class="filter buttonDeselected">HP</button>
                     </td></tr>
                     <tr><td>
+                        <div style="width:400;margin:auto; position: relative">
                         <div id="{{this.[5]}}" class="waveform"></div>
+                            
+                        <div style="width: 100%; position: relative; display: inline">
+                        <canvas class="volMeter volMeterL"></canvas>
+                            
                         <canvas id="{{this.[6]}}" class="visualizer metal" style="width:50%; margin:10px"></canvas>
-                        <canvas id="{{this.[7]}}" class="metal2" height="60" style="border:1px solid black; width:100%; background-color: #fff; margin-bottom: 20px; display: none"></canvas>
+                    
+                        <canvas class="volMeter volMeterR"></canvas>
+                        </div>
                         
+                        <canvas id="{{this.[7]}}" class="metal2" height="60" style="border:1px solid black; width:100%; background-color: #fff; margin-bottom: 20px; display: none"></canvas>
+                        </div>
+                        
+                        
+                        
+                        
+                        
+                    </td></tr>
+                    <tr><td>
+                    
                     </td></tr>
                 </table>
             
@@ -86,8 +105,11 @@
             {{/each}}
             </span>
         </div>
-        <div class="row" style="margin-bottom:20px">
-            <div class="col-sm-12 column linear bottom" id={{this.[0]}} style="text-align:center">
+        
+        
+        
+        <div class="" style="margin-bottom:20px">
+            <div class="column2 linear bottom" id={{this.[0]}} style="text-align:center">
                 <div class="" style="text-align:center; height:72px; padding:0px; display: inline-block; align-content: center">
                 
                     <div class="xFaderDiv metal2">

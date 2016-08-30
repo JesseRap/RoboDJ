@@ -1,0 +1,35 @@
+tr {
+  border: 2px solid orange; }
+
+.myJumbotron {
+  background-color: blue;
+  position: relative;
+  width: 95%;
+  height: 100px;
+  margin: auto;
+  min-width: 230px; }
+
+.myContainer {
+  text-align: center;
+  position: relative;
+  min-width: 230px; }
+
+h1 {
+  line-height: 100px;
+  height: 100px; }
+
+.volMeterL {
+  transform: translateX(-20px) translateY(-30px); }
+
+.volMeterR {
+  transform: translateX(20px) translateY(-30px); }
+
+.volMeter {
+  width: 20px;
+  height: 50px;
+  border: 2px solid yellow; }
+
+.bottomSpan {
+  border: 2px solid blue; }
+
+/*# sourceMappingURL=myStyles.css.map */

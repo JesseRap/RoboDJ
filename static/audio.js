@@ -415,7 +415,7 @@ function wsObject(ws) {
     this.isRunning = false;
     this.isLoaded = false;
     this.playbackSpeed = 1;
-    this.HTMLtable = $(this.ws.container).closest("table")[0]
+    this.HTMLtable = $(this.ws.container).closest("table")[0];
     
     this.filterButtons = $(this.HTMLtable).find(".filter");
     this.LPbutton = this.filterButtons[0];
@@ -438,6 +438,87 @@ function wsObject(ws) {
     this.onFilterArray = [this.gainNode, this.analyser];
     
     
+    this.volAnalyser = this.context.createAnalyser();
+    this.volAnalyser.smoothingTimeConstant = 0.3;
+    this.volAnalyser.fftSize = 1024;
+    this.javascriptNode = this.context.createScriptProcessor(2048, 1, 1);
+    
+    
+    
+    this.javascriptNode.onaudioprocess = function() {
+ 
+        // get the average, bincount is fftsize / 2
+        var array =  new Uint8Array(this.volAnalyser.frequencyBinCount);
+        this.volAnalyser.getByteFrequencyData(array);
+        var average = getAverageVolume(array)
+        console.log()
+ 
+        // clear the current state
+        this.volCtx.clearRect(0, 0, 60, 130);
+ 
+        // set the fill style
+        this.volCtx.fillStyle=gradient;
+ 
+        // create the meters
+        this.volCtx.fillRect(0,130-average,25,130);
+    };
+    
+    
+    
+    
+}
+
+$(function() {
+    for (ws in wsArray) {
+        console.log('wsarray', wsArray[ws]);
+        setupAudioNodes(wsArray[ws]);
+    }
+})
+
+function setupAudioNodes(ws) {
+    
+    ws.volCanvas = $(ws.HTMLtable).find('.volMeter')[0];
+    console.log(ws.volCanvas);
+    ws.volCtx = ws.volCanvas.getContext('2d');
+    ws.volCtx.clearRect(0, 0, 60, 130);
+    console.log("THIS", this.volCanvas, this.volAnalyser, this.volCtx);
+ 
+    // setup a javascript node
+    ws.javascriptNode = ws.context.createScriptProcessor(2048, 1, 1);
+    // connect to destination, else it isn't called
+    ws.javascriptNode.connect(ws.context.destination);
+
+    // setup a analyzer
+    ws.volAnalyser = ws.context.createAnalyser();
+    ws.volAnalyser.smoothingTimeConstant = 0.3;
+    ws.volAnalyser.fftSize = 1024;
+
+    // create a buffer source node
+    ws.sourceNode = ws.context.createBufferSource();
+
+    // connect the source to the analyser
+    ws.sourceNode.connect(ws.analyser);
+
+    // we use the javascript node to draw at a specific interval.
+    ws.volAnalyser.connect(ws.javascriptNode);
+
+    // and connect to destination, if you want audio
+    ws.sourceNode.connect(ws.context.destination);
+}
+
+getAverageVolume = function(array) {
+    var values = 0;
+    var average;
+
+    var length = array.length;
+
+    // get all the frequency amplitudes
+    for (var i = 0; i < length; i++) {
+        values += array[i];
+    }
+
+    average = values / length;
+    return average;
 }
 
 /*

@@ -6,9 +6,6 @@ body {
     height: 200px;
 }
 
-.deck {
-}
-
 .custom-file-input::-webkit-file-upload-button {
   visibility: hidden;
 }
@@ -33,7 +30,7 @@ body {
 
 
 
-.column {
+.column2 {
     border-radius: 5px;
     background-color: hsl(0,0%,90%);
     box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
@@ -119,7 +116,10 @@ body {
 }
 
 .bottom {
+    margin: auto;
     margin-top: 25px;
+    width: 90%;
+    position: relative;
 }
 
 .deckContainer {
@@ -148,17 +148,6 @@ body {
     margin-right: 2%;
 }
 
-/*
-#leftPlayer {
-  background-color: lightgray;
-  background-image:
-    linear-gradient(
-      to right top,
-      #9498a1,
-      #c4c7ce
-    );
-}
-*/
 
 #metronomeButton {
     margin: 5px;
@@ -189,6 +178,7 @@ h2 {
     color: white;
     padding-top: 15px;
     font-family: 'Oswald', sans-serif;
+    text-shadow: 0px -2px black;
 }
 
 h1:hover, h2:hover {
@@ -199,18 +189,6 @@ h1 {
     font-size: 60px !important;
     font-family: 'Oswald', sans-serif;
 }
-
-/*
-#rightPlayer {
-  background-color: lightgray;
-  background-image:
-    linear-gradient(
-      to left top,
-      #9498a1,
-      #c4c7ce
-    );
-}
-*/
 
 
 .waveform {
