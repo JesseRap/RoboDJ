@@ -37,11 +37,13 @@
     </div>
     
     <div class="myContainer">
-        <div class="" style="text-align:center">
-            <span>
+        <div class="" style="text-align:center;">
+            
             
             {{#each deckIDs}}
-            <div class="column2" id={{this.[0]}}>
+                
+            <div class="column2" id={{this.[0]}} style="position:relative">
+                <div class="deckContainer">
                 <h2>{{@key}}</h2>    
                 
                 <table id="{{this.[1]}}" style="margin: auto">
@@ -50,10 +52,12 @@
                         <input type="file" class="custom-file-input" id="{{this.[2]}}" accept=".wav,.mp3,.ogg" style="margin:auto; margin-bottom:10px; background-color:#C9C9C9; height: 25px; border: 2px solid black">
                         
                     </td></tr>
-                    <tr><td class="metal linear">
+                    <tr><td>
+                        <div class="metal linear playpause">
                         <button class="smallButton rewind"></button>
                         <button id="{{this.[3]}}" class="startButton"></button>
                         <button class="smallButton FF"></button>
+                        </div>
                         
                         <!--
                         <input type="range" id="{{this.[4]}}" value="100" style="height: 50px; margin:auto; -webkit-appearance: slider-vertical">
@@ -78,12 +82,16 @@
                         <div style="width:400;margin:auto; position: relative">
                         <div id="{{this.[5]}}" class="waveform"></div>
                             
-                        <div style="width: 100%; position: relative; display: inline">
-                        <canvas class="volMeter volMeterL"></canvas>
-                            
-                        <canvas id="{{this.[6]}}" class="visualizer metal" style="width:50%; margin:10px"></canvas>
-                    
-                        <canvas class="volMeter volMeterR"></canvas>
+                        <div style="position: relative" class="widgetContainer">
+                            <div>
+                            <canvas class="volMeter volMeterL" width="20px" height="50px"></canvas>
+                            </div>
+                            <div>
+                            <canvas id="{{this.[6]}}" class="visualizer metal" style="width:50%; margin:10px"></canvas>
+                            </div>
+                            <div>
+                            <canvas class="volMeter volMeterR" width="20px" height="50px"></canvas>
+                                </div>
                         </div>
                         
                         <canvas id="{{this.[7]}}" class="metal2" height="60" style="border:1px solid black; width:100%; background-color: #fff; margin-bottom: 20px; display: none"></canvas>
@@ -98,12 +106,12 @@
                     
                     </td></tr>
                 </table>
-            
-            
             </div>
+                </div>
+                
             
             {{/each}}
-            </span>
+            
         </div>
         
         

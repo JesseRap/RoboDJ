@@ -140,7 +140,7 @@ function getPreviousHighestInArray(arr, int) {
 function playPause(ws) {
     var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
     console.log(wsOther);
-    var currentPlayer = $(ws.HTMLtable).closest('div')[0];
+    var currentPlayer = $(ws.HTMLtable).parents('div')[1];
     console.log(currentPlayer);
     if (ws.isLoaded) {
         console.log("ISLOADED");
@@ -149,7 +149,8 @@ function playPause(ws) {
             ws.isRunning = false;
             ws.ws.pause();
             clearInterval(setIntervalFunc);
-            currentPlayer.className = "column";
+            currentPlayer.className = "column2";
+            $($(ws.HTMLtable).parents('div')[0]).css("box-shadow", "0px 0px 0px 0px #fff");
         } else {
             if (wsOther.isRunning) {
                 // SET THE PLAYBACKRATE SO THAT THE SELECTED WS 
@@ -437,31 +438,17 @@ function wsObject(ws) {
     this.filters = [this.gainNode, this.analyser, this.LP, this.BP, this.HP];
     this.onFilterArray = [this.gainNode, this.analyser];
     
-    
+    /*
     this.volAnalyser = this.context.createAnalyser();
     this.volAnalyser.smoothingTimeConstant = 0.3;
     this.volAnalyser.fftSize = 1024;
+    
     this.javascriptNode = this.context.createScriptProcessor(2048, 1, 1);
+    */
     
     
     
-    this.javascriptNode.onaudioprocess = function() {
- 
-        // get the average, bincount is fftsize / 2
-        var array =  new Uint8Array(this.volAnalyser.frequencyBinCount);
-        this.volAnalyser.getByteFrequencyData(array);
-        var average = getAverageVolume(array)
-        console.log()
- 
-        // clear the current state
-        this.volCtx.clearRect(0, 0, 60, 130);
- 
-        // set the fill style
-        this.volCtx.fillStyle=gradient;
- 
-        // create the meters
-        this.volCtx.fillRect(0,130-average,25,130);
-    };
+    
     
     
     
@@ -471,17 +458,22 @@ function wsObject(ws) {
 $(function() {
     for (ws in wsArray) {
         console.log('wsarray', wsArray[ws]);
-        setupAudioNodes(wsArray[ws]);
+        // setupAudioNodes(wsArray[ws]);
+        
+        
     }
 })
 
 function setupAudioNodes(ws) {
+    console.log("SETUPAUDIONODES");
     
-    ws.volCanvas = $(ws.HTMLtable).find('.volMeter')[0];
-    console.log(ws.volCanvas);
-    ws.volCtx = ws.volCanvas.getContext('2d');
-    ws.volCtx.clearRect(0, 0, 60, 130);
-    console.log("THIS", this.volCanvas, this.volAnalyser, this.volCtx);
+    ws.volCanvasL = $(ws.HTMLtable).find('.volMeter')[0];
+    ws.volCanvasR = $(ws.HTMLtable).find('.volMeter')[1];
+    // console.log(ws.volCanvasL);
+    ws.volCtxL = ws.volCanvasL.getContext('2d');
+    ws.volCtxR = ws.volCanvasR.getContext('2d');
+    // ws.volCtx.clearRect(0, 0, 60, 130);
+    
  
     // setup a javascript node
     ws.javascriptNode = ws.context.createScriptProcessor(2048, 1, 1);
@@ -490,20 +482,64 @@ function setupAudioNodes(ws) {
 
     // setup a analyzer
     ws.volAnalyser = ws.context.createAnalyser();
-    ws.volAnalyser.smoothingTimeConstant = 0.3;
+    // ws.volAnalyser.smoothingTimeConstant = 0.3;
     ws.volAnalyser.fftSize = 1024;
 
     // create a buffer source node
-    ws.sourceNode = ws.context.createBufferSource();
+    // ws.sourceNode = ws.context.createBufferSource();
 
     // connect the source to the analyser
-    ws.sourceNode.connect(ws.analyser);
+    ws.ws.backend.source.connect(ws.volAnalyser);
 
     // we use the javascript node to draw at a specific interval.
-    ws.volAnalyser.connect(ws.javascriptNode);
+    ws.analyser.connect(ws.javascriptNode);
 
     // and connect to destination, if you want audio
-    ws.sourceNode.connect(ws.context.destination);
+    // ws.sourceNode.connect(ws.context.destination);
+    // console.log(ws, ws.volAnalyser, ws.javascriptNode);
+    // console.log(ws.volCanvas.height, ws.volCanvas.width);
+    
+    ws.javascriptNode.onaudioprocess = function() {
+        // console.log("now processing");
+ 
+        // get the average, bincount is fftsize / 2
+        var array =  new Uint8Array(ws.analyser.frequencyBinCount);
+        ws.analyser.getByteFrequencyData(array);
+        
+        var average = getAverageVolume(array);
+        // console.log(average);
+        
+        // clear the current state
+        ws.volCtxL.clearRect(0, 0, 20, 50);
+        ws.volCtxR.clearRect(0, 0, 20, 50);
+
+        // set the fill style
+        
+        
+        var gradient = ws.volCtxR.createLinearGradient(0,0,20,50);
+        gradient.addColorStop(0,"red");
+        gradient.addColorStop(1,"yellow");
+        ws.volCtxR.fillStyle=gradient;
+        ws.volCtxL.fillStyle=gradient;
+        
+
+        // create the meters
+        ws.volCtxL.fillRect(0,ws.volCanvasL.height,20,-(average/150)*50);
+        ws.volCtxR.fillRect(0,ws.volCanvasR.height,20,-(average/150)*50);
+        
+        // $($(ws.HTMLtable).parents('div')[1]).css("border", "8px solid red")
+        var shadowSize = (average/150) * 20;
+        var secondParam = "0 0 "+shadowSize.toString()+"px "+shadowSize.toString()+"px rgba(81, 203, 238, 1)";
+        // console.log(average, shadowSize, secondParam);
+        if (ws.isRunning) {
+            $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", secondParam);
+        } else {
+            $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", "0px 0px 0px 0px #fff")
+        }
+        
+    };
+    
+    // console.log("NOW", ws.volCanvas, ws.volAnalyser, ws.volCtx);
 }
 
 getAverageVolume = function(array) {
@@ -713,6 +749,8 @@ function isReady(ws) {
     getBPM(ws);
     getBeatArray(ws);
     findSegments(ws);
+    
+    setupAudioNodes(ws);
     
     hiddenWS.load("static/metronome.wav");
 }

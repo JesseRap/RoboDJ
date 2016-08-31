@@ -1,3 +1,5 @@
+
+
 body {
     background-color: black
 }
@@ -52,7 +54,8 @@ body {
     
     hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
     hsla(0,0%,100%,.5) 0  5px 6px 4px, /* outer HL */ 
-    0 0 1em 0.5em rgba(81, 203, 238, 1);
+    /* BLUE SHADOW */
+    /*0 0 5px 5px rgba(81, 203, 238, 1);*/
 }
 
 
@@ -122,11 +125,7 @@ body {
     position: relative;
 }
 
-.deckContainer {
-    box-shadow: 0 0 5px rgba(81, 203, 238, 1);
-    display: inline-block;
-    text-align: center;
-}
+
 
 #leftPlayer, #rightPlayer {
     background-image: url('black_wood_2.png');
@@ -190,8 +189,13 @@ h1 {
     font-family: 'Oswald', sans-serif;
 }
 
-
+.playpause {
+    width: 300px !important;
+    margin: auto;
+}
 .waveform {
+    width: 300px;
+    margin: auto;
     background-color: #4B0082;
     margin-top: 15px;
     border: 7px solid #2E0854;
