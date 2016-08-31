@@ -1873,3 +1873,6 @@ function hiBeats(ws, bpm) {
 function goToBeat(ws, beatgrid, n) {
     ws.seekTo(beatgrid[n] / ws.backend.buffer.length);
 }
+
+
+$('.dial').each(function(a, obj) {console.log('yup',obj); var cnvs = $(obj).siblings('canvas')[0]; console.log(cnvs); $(cnvs).css('border', '3px solid #1c2f2f'); $(cnvs).css('border-radius', '20px')})

@@ -192,6 +192,7 @@ h1 {
 .playpause {
     width: 300px !important;
     margin: auto;
+    position: relative;
 }
 .waveform {
     width: 300px;
@@ -225,6 +226,10 @@ h1 {
     background-size: cover;
     position: relative;
     margin-top: 30px;
+}
+
+wave > canvas {
+    width: inherit;
 }
 
 .rewind {
