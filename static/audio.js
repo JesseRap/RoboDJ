@@ -1451,7 +1451,10 @@ function getBeatArray(ws) {
     ws.ws.zoom(zoom-2);
     
     
-    var peakArray = getPeaksAtThreshold(ws);
+    ws.peakArray = getPeaksAtThreshold(ws);
+    var peakArray = ws.peakArray.filter(function(a) {return a < ws.ws.backend.buffer.length/4});
+    // var peakArray = ws.peakArray.slice(0,Math.floor(ws.peakArray.length/2));
+    // peakArray = peakArray.slice(Math.floor(peakArray.length/2), Math.floor(peakArray.length/2 + peakArray.length/10));
 
     var interval = BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
     console.log(interval);
@@ -1463,20 +1466,35 @@ function getBeatArray(ws) {
     
     for (i = 0; i < (60/ws.BPM)*44100; i++) {
         // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
-        if (i%1000 === 0) {
+        if (i%100 === 0) {
             console.log(i);
         }
         var score = 0;
         var n = 0;
         var temp = [];
-        for (var j = i; j < ws.ws.backend.buffer.length; j += interval) {
+        for (var j = i; j < ws.ws.backend.buffer.length/4; j += interval) {
             // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
-            score += c[Math.round(j)];
+            //score += c[Math.round(j)];
             // score += findDistanceToNearestInArray(Math.round(j), peakArray)
+            for (var k = -20; k < 20; k++) {
+                if (peakArray.indexOf(j+k) > -1) {
+                    score++;
+                    break;
+                }
+            }
             temp.push(Math.round(j));
             n++;
         }
         score /= n;
+        /*
+        score = temp.filter(function(obj) {
+            for (var k = -100; k < 100;) {
+                if (peakArray.indexOf(obj+k) > -1) {
+                    return obj
+                }
+            }
+        }).length;
+        */
         if (score > topScore) {
             console.log("NEW TOPSCORE");
             console.log("score", topScore, score, temp, n, m);
@@ -1485,6 +1503,11 @@ function getBeatArray(ws) {
         };
         m++;
     }
+    var temp2 = [];
+    for (var j = result[0]; j < ws.ws.backend.buffer.length; j += interval) {
+        temp2.push(Math.round(j));
+    };
+    result = temp2;
     ws.realBeatGrid = result;
     ws.realInterval = interval;
     ws.realFirstPeak = temp[0];
