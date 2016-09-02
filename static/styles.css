@@ -78,7 +78,7 @@ body {
   transition: color .2s;
 }
 
-.metal2 {
+.metal2:not(.segments) {
     box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
     inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
     inset hsla(0,0%,0%, .25) 0 -1px 0px 2px, /* bottom SD */
@@ -91,6 +91,7 @@ body {
 #canvasLeft, #canvasRight {
     margin-bottom: 15px !important;
 }
+
 
 .linear {
   /*width: 100px;*/
@@ -128,8 +129,8 @@ body {
 
 
 #leftPlayer, #rightPlayer {
-    background-image: url('black_wood_2.png');
-    background-size: cover;
+    background-image: url('black_wood_3.jpg');
+    background-size: contain;
     min-width: 350px;
     display: inline-block;
     margin-top: 20px;
@@ -166,6 +167,10 @@ body {
 #leftDeckUpload, #rightDeckUpload {
     height: 40px;
     margin-top: 20px;
+}
+
+input:checked {
+    border: 5px solid red;
 }
 
 .filter {
@@ -224,8 +229,10 @@ h1 {
     width: 50px;
     margin: 20px;
     background-size: cover;
-    position: relative;
-    margin-top: 30px;
+    position: absolute;
+    top: 50%;
+    margin-top: -25px;
+    box-sizing: border-box;
 }
 
 wave > canvas {
@@ -234,10 +241,12 @@ wave > canvas {
 
 .rewind {
     background-image: url(rewind-button.png);
+    left: 10px;
 }
 
 .FF {
     background-image: url(FF-button.png);
+    right: 10px;
 }
 
 .visualizer {

@@ -35,10 +35,17 @@ $("#xFader").on('change', function(){xFade()});
 
 $(function() {
     $(".slider").each(function(idx, el) {el.style['width']= "400px"; el.style["marginTop"] = "2px"})
-    $("#xFaderDiv").find(".slider-handle").each(function(idx, el) {console.log(el)})
+    
 });
 
 
+$(function(){
+    for (i in wsArray) {
+        var ws = wsArray[i];
+        $($(ws.HTMLtable).find('canvas')[7]).css('background-color', 'black');
+        $($(ws.HTMLtable).find('canvas')[5]).css('background-color', 'black');
+    }
+});
 
 var knobArray = [];
 
@@ -935,10 +942,12 @@ function drawGraph(ws, canvas) {
     var context = canvas.getContext("2d");
     var rms_array = ws.RMS_array;
     
+    /*
     for (var x = 0.5; x < canvas.width; x += canvas.width / (ws.ws.backend.buffer.duration / rms_step) ) {
         context.moveTo(x, 0);
         context.lineTo(x, canvas.height);
     }
+    */
     
     context.strokeStyle = "#eee";
     context.stroke();
@@ -1287,7 +1296,9 @@ function countIntervalsBetweenNearbyPeaks(peaks) {
 
 
 function intervalToBPM(interval, samplerate) {
+    // CONVERT A SAMPLE INTERVAL TO CORRESPONDING BPM
     result = 60 / (interval / samplerate)
+    // COERCE THE RESULT TO A VALUE BETWEEN 80 AND 160
     while (result < 80) {
         result *= 2
     }
@@ -1302,12 +1313,6 @@ function BPMToInterval(BPM, samplerate) {
     return (60 * samplerate) / BPM
 }
 
-// var hipass = hiddenWS.backend.ac.createBiquadFilter();
-// hipass.type = "highpass";
-// hipass.frequency.value = 40000;
-// hiddenWS.backend.setFilter(hipass);
-
-    
     
 function getBPM(ws) {
     // RETURN THE BPM OF THE TRACK WITH THE GIVEN TITLE
@@ -1419,15 +1424,26 @@ function compareResults(correctAnswerArr) {
     }
     return result;
 }
-console.log(findDistanceToNearestInArray(165, [1,5,200,87,150]))
+
+
+function getLastSegment(ws) {
+    var bar16 = ws.realInterval * 16;
+    var last = ws.ws.buffer.length - bar16;
+    var segs = ws.segments.map(function(obj) {return obj[0]});
+    console.log(segs);
+}
 
 
 function getBeatArray(ws) {
+    // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
+    
     console.log("GET BEAT ARRAY")
     
     // FIND MAXIMUM ZOOM
     var zoom = 0;
     ws.ws.zoom(0);
+    // CANVAS APPARENTLY CANNOT EXCEED ~32400
+    // KEEP ZOOMING UNTIL LIMIT IS REACHED
     while (ws.waveformCanvas.width < 32400) {
         ws.ws.zoom(zoom);
         zoom++;
@@ -1446,6 +1462,7 @@ function getBeatArray(ws) {
     var m = 0;
     
     for (i = 0; i < (60/ws.BPM)*44100; i++) {
+        // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
         if (i%1000 === 0) {
             console.log(i);
         }
@@ -1453,6 +1470,7 @@ function getBeatArray(ws) {
         var n = 0;
         var temp = [];
         for (var j = i; j < ws.ws.backend.buffer.length; j += interval) {
+            // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
             score += c[Math.round(j)];
             // score += findDistanceToNearestInArray(Math.round(j), peakArray)
             temp.push(Math.round(j));
@@ -1515,7 +1533,7 @@ function getBeatArray(ws) {
 function findDistanceToNearestInArray(int, arr) {
     var lower = arr.filter(function(a) {return a < int}).slice(-1)[0];
     var higher = arr.filter(function(a) {return a > int})[0];
-    console.log(lower, higher);
+    // console.log(lower, higher);
     return Math.min(int-lower, higher-int);
 }
 
@@ -1794,6 +1812,7 @@ function findSegments(ws) {
     console.log("STROKE");
     ctx.stroke();
     
+    ws.segments = result.map(function(obj, idx) {return [obj,ws.segVolArray[idx]]});
     return result
 
 }
@@ -1870,8 +1889,8 @@ function hiBeats(ws, bpm) {
 
 
 
-function goToBeat(ws, beatgrid, n) {
-    ws.seekTo(beatgrid[n] / ws.backend.buffer.length);
+function goToBeat(ws, n) {
+    ws.ws.seekTo(ws.realBeatGrid[n] / ws.ws.backend.buffer.length);
 }
 
 
