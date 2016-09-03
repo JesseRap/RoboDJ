@@ -145,6 +145,7 @@ function getPreviousHighestInArray(arr, int) {
 }
 
 function playPause(ws) {
+    console.log("PLAYPAUSE");
     var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
     console.log(wsOther);
     var currentPlayer = $(ws.HTMLtable).parents('div')[1];
@@ -471,6 +472,7 @@ $(function() {
     }
 })
 
+
 function setupAudioNodes(ws) {
     console.log("SETUPAUDIONODES");
     
@@ -505,9 +507,15 @@ function setupAudioNodes(ws) {
     // ws.sourceNode.connect(ws.context.destination);
     // console.log(ws, ws.volAnalyser, ws.javascriptNode);
     // console.log(ws.volCanvas.height, ws.volCanvas.width);
-    
+    getLastSegment(ws);
     ws.javascriptNode.onaudioprocess = function() {
-        // console.log("now processing");
+        // console.log("now processing", ws.ws.getCurrentTime());
+        var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
+        if ( (ws.realBeatGrid[ws.lastSeg] - (ws.ws.getCurrentTime() * 44100)) < ws.realInterval && !ws.hasTransitioned) {
+            ws.hasTransitioned = true;
+            playPause(wsOther);
+        }
+        
  
         // get the average, bincount is fftsize / 2
         var array =  new Uint8Array(ws.analyser.frequencyBinCount);
@@ -544,9 +552,8 @@ function setupAudioNodes(ws) {
             $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", "0px 0px 0px 0px #fff")
         }
         
+        
     };
-    
-    // console.log("NOW", ws.volCanvas, ws.volAnalyser, ws.volCtx);
 }
 
 getAverageVolume = function(array) {
@@ -611,28 +618,6 @@ var wsArray = [wsLeft, wsRight];
 
     
 
-/*
-// DEFINE RIGHT DECK VARIABLES
-var gainNodeR,
-    analyserR,
-    dataArrayR,
-    canvasR = document.querySelector('#canvasRight'),
-    canvasCtxR = canvasR.getContext("2d"),
-    bufferLengthR,
-    bufferR,
-    RMS_ArrayR = [],
-    beatGridR = [],
-    currentTrackR = "",
-    bpmR;
-
-
-// CONNECT GAIN NODE
-var contextR = wavesurferRight.backend.ac
-gainNodeR = contextR.createGain();
-console.log(gainNodeR);
-wavesurferRight.backend.setFilter(gainNodeR);
-*/
-
 function drawEQBars(ws) {
     
     var cnvs = $('.visualizer')[wsArray.indexOf(ws)];
@@ -642,13 +627,9 @@ function drawEQBars(ws) {
     var drawVisual;
     
     var an = ws.analyser;
-    // ws.gainNode.connect(an);
-    // an.fftSize = 256;
-    // var bufferLength = an.frequencyBinCount;
+
     console.log(ws.bufferLength);
-    // ws.dataArray = new Uint8Array(ws.bufferLength);
-    // var cnvs = ws.EQCanvas;
-    // var ctx = cnvs.getContext("2d");
+
     ctx.clearRect(0, 0, cnvs.width, cnvs.height);
     console.log("EQ", ctx, an)
     console.log(cnvs.width, ws.bufferLength, ws.dataArray);
@@ -759,8 +740,23 @@ function isReady(ws) {
     
     setupAudioNodes(ws);
     
+    getFirstSegment(ws);
+    
+    var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
+    if (wsOther.isLoaded) {
+        goToBeat(ws, ws.firstSeg - 16);
+    }
+    ws.hasTransitioned = false;
+    
     hiddenWS.load("static/metronome.wav");
 }
+
+
+function crossFade(fromWS, toWS) {
+    // AUTOMATIC X-FADE FROM ONE DECK TO THE OTHER
+    
+}
+
 
 wavesurferLeft.on('ready', function () {
     // ACTION ONCE THE TRACK IS LOADED INTO WAVESURFER INSTANCE
@@ -1427,10 +1423,27 @@ function compareResults(correctAnswerArr) {
 
 
 function getLastSegment(ws) {
-    var bar16 = ws.realInterval * 16;
-    var last = ws.ws.buffer.length - bar16;
-    var segs = ws.segments.map(function(obj) {return obj[0]});
-    console.log(segs);
+    var bar32 = ws.realInterval * 32;
+    var last = ws.ws.backend.buffer.length - bar32;
+    console.log(last);
+    var x = ws.segments.map(function(a) {return a[0]});
+    console.log(x);
+    var y = x.filter(function(b) {console.log(b); return b*ws.realInterval < last})
+    console.log(y);
+    ws.lastSeg = y.slice(y.length-1)[0];
+    console.log(ws.lastSeg);
+}
+
+function getFirstSegment(ws) {
+    var bar32 = ws.realInterval * 32;
+    var first = bar32;
+    console.log(first);
+    var x = ws.segments.map(function(a) {return a[0]});
+    console.log(x);
+    var y = x.filter(function(b) {console.log(b); return b*ws.realInterval > first})
+    console.log(y);
+    ws.firstSeg = y[0];
+    console.log(ws.firstSeg);
 }
 
 
@@ -1835,7 +1848,7 @@ function findSegments(ws) {
     console.log("STROKE");
     ctx.stroke();
     
-    ws.segments = result.map(function(obj, idx) {return [obj,ws.segVolArray[idx]]});
+    ws.segments = result.map(function(obj, idx) {return [obj,ws.segVolArray[idx]]}).sort(function(a,b) {return a[0]-b[0]});
     return result
 
 }
