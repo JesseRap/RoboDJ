@@ -530,7 +530,7 @@ function setupAudioNodes(ws) {
     ws.javascriptNode.onaudioprocess = function() {
         // console.log("now processing", ws.ws.getCurrentTime());
         var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
-        if ( (ws.realBeatGrid[ws.lastSeg] - (ws.ws.getCurrentTime() * 44100)) < ws.realInterval && !ws.hasTransitioned) {
+        if ( (ws.realBeatGrid[ws.lastSeg] - (ws.ws.getCurrentTime() * 44100)) < ws.realInterval && !ws.hasTransitioned && wsOther.isLoaded) {
             // IF THE CURRENT TIME IS LESS THAN AN INTERVAL AWAY FROM THE 
             // LAST SEG, START THE TRANSITION
             ws.hasTransitioned = true;
@@ -775,7 +775,20 @@ function isReady(ws) {
     ws.hasTransitioned = false;
     
     hiddenWS.load("static/metronome.wav");
-}
+    
+    ws.ws.on('finish', function() {
+        console.log("TRACK ENDED");
+        ws.ws.stop();
+        if (playlist.length > 0) {
+            var nextTrack = playlist.pop();
+            ws.ws.loadBlob(nextTrack);
+            
+            var trackTitle = nextTrack['name'];
+            trackTitle = trackTitle.replace(".mp3", "");
+            setLoadBtnText(ws, trackTitle);
+        };
+    });
+};
 
 
 
@@ -920,6 +933,52 @@ rightDeckUpload.addEventListener("change", function() {
         wsRight.currentTrack = track;
     }
 });
+
+var autoMixUpload = document.querySelector("#autoMixUpload");
+var playlist = [];
+autoMixUpload.addEventListener("change", function() {
+    console.log("AUTOMIXUPLOAD");
+    if (autoMixUpload.files.length > 0) {
+        for (var i = 0; i < autoMixUpload.files.length; i++) {
+            playlist.push(autoMixUpload.files[i]);
+        }
+    };
+    
+    if (playlist.length > 0) {
+        wsLeft.ws.loadBlob(playlist.pop());
+        wsLeft.ws.on("ready", function() {
+            wsLeft.ws.play();
+            if (playlist.length > 0) {
+                wsRight.ws.loadBlob(playlist.pop());
+            };
+        });
+        
+    }
+    
+});
+
+
+
+function playMix() {
+    XXX.slider('setValue', 0);
+    xFade();
+    if (playlist.length > 0) {        
+        var nextTrack = playlist.pop();
+        wsLeft.ws.loadBlob(nextTrack);
+        var trackTitle = nextTrack['name'];
+        trackTitle = trackTitle.replace(".mp3", "");
+        setLoadBtnText(ws, trackTitle);
+    };
+    if (playlist.length > 0) {
+        var nextTrack = playlist.pop();
+        wsRight.ws.loadBlob(nextTrack);
+        var trackTitle = nextTrack['name'];
+        trackTitle = trackTitle.replace(".mp3", "");
+        setLoadBtnText(ws, trackTitle);
+    };
+    
+}
+
 
 function setLoadBtnText (ws, text) {
     var currentUploader = $(ws.HTMLtable).find('.custom-file-input')[0];
