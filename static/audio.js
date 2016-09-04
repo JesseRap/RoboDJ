@@ -27,7 +27,7 @@ $(function() {
         min: 0,
         max: 100,
         step: 0.1,
-        value: 50,
+        value: 0,
         id: "xFaderSlider"
     });
 });
@@ -209,7 +209,7 @@ function playPause(ws) {
                 
                 var endTime = Date.now();
                 console.log("THIS TOOK ", endTime - startTime);
-                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100), ws.ws.play(); ws.isRunning = true; currentPlayer.className = "columnSelected";}, delay * (1/ws.playbackSpeed));
+                setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100); ws.ws.play(); ws.isRunning = true; currentPlayer.className = "columnSelected";}, delay * (1/ws.playbackSpeed));
                 
                 // ws.ws.play();
                 ws.isRunning = true;
@@ -527,6 +527,7 @@ function setupAudioNodes(ws) {
     // console.log(ws, ws.volAnalyser, ws.javascriptNode);
     // console.log(ws.volCanvas.height, ws.volCanvas.width);
     getLastSegment(ws);
+    ws.hasTransitioned = false;
     ws.javascriptNode.onaudioprocess = function() {
         // console.log("now processing", ws.ws.getCurrentTime());
         var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
@@ -778,17 +779,25 @@ function isReady(ws) {
     
     ws.ws.on('finish', function() {
         console.log("TRACK ENDED");
-        ws.ws.stop();
+        playPause(ws);
+        ws.isRunning = false;
         if (playlist.length > 0) {
             var nextTrack = playlist.pop();
-            ws.ws.loadBlob(nextTrack);
-            
-            var trackTitle = nextTrack['name'];
-            trackTitle = trackTitle.replace(".mp3", "");
-            setLoadBtnText(ws, trackTitle);
+            loadBlobToDeck(ws, nextTrack);
         };
     });
 };
+
+
+function loadBlobToDeck(ws, blob) {
+    // LOAD A FILE INTO A DECK AND CHANGE THE TEXT OF THE <INPUT>
+    ws.ws.loadBlob(blob);
+            
+    var trackTitle = blob['name'];
+    trackTitle = trackTitle.replace(".mp3", "");
+    setLoadBtnText(ws, trackTitle);
+    ws.currentTrack = blob;
+}
 
 
 
@@ -912,11 +921,7 @@ leftDeckUpload.addEventListener("change", function() {
     if (leftDeckUpload.files.length > 0) {
         clearGraphLeft();
         var track = leftDeckUpload.files[0];
-        var trackTitle = track['name'];
-        trackTitle = trackTitle.replace(".mp3", "");
-        setLoadBtnText(wsLeft, trackTitle);
-        wavesurferLeft.loadBlob(track);
-        wsLeft.currentTrack = track;
+        loadBlobToDeck(wsLeft, track);
     }
 });
 
@@ -925,17 +930,19 @@ rightDeckUpload.addEventListener("change", function() {
     if (rightDeckUpload.files.length > 0) {
         clearGraphRight();
         var track = rightDeckUpload.files[0];
-        var trackTitle = track['name'];
-        trackTitle = trackTitle.replace(".mp3", "");
-        setLoadBtnText(wsRight, trackTitle);
-        wavesurferRight.loadBlob(track);
-        currentTrackR = track;
-        wsRight.currentTrack = track;
+        loadBlobToDeck(wsRight, track);
     }
 });
 
 var autoMixUpload = document.querySelector("#autoMixUpload");
 var playlist = [];
+var f = function() {
+    playPause(wsLeft);
+    if (playlist.length > 0) {
+        wsRight.ws.loadBlob(playlist.pop());
+    };
+    wsLeft.ws.un("ready", f);
+};
 autoMixUpload.addEventListener("change", function() {
     console.log("AUTOMIXUPLOAD");
     if (autoMixUpload.files.length > 0) {
@@ -946,13 +953,7 @@ autoMixUpload.addEventListener("change", function() {
     
     if (playlist.length > 0) {
         wsLeft.ws.loadBlob(playlist.pop());
-        wsLeft.ws.on("ready", function() {
-            wsLeft.ws.play();
-            if (playlist.length > 0) {
-                wsRight.ws.loadBlob(playlist.pop());
-            };
-        });
-        
+        wsLeft.ws.on("ready", f);
     }
     
 });
@@ -960,6 +961,8 @@ autoMixUpload.addEventListener("change", function() {
 
 
 function playMix() {
+    // LOAD AND PLAY THE SONGS IN THE PLAYLIST
+    
     XXX.slider('setValue', 0);
     xFade();
     if (playlist.length > 0) {        
@@ -967,14 +970,14 @@ function playMix() {
         wsLeft.ws.loadBlob(nextTrack);
         var trackTitle = nextTrack['name'];
         trackTitle = trackTitle.replace(".mp3", "");
-        setLoadBtnText(ws, trackTitle);
+        setLoadBtnText(wsLeft, trackTitle);
     };
     if (playlist.length > 0) {
         var nextTrack = playlist.pop();
         wsRight.ws.loadBlob(nextTrack);
         var trackTitle = nextTrack['name'];
         trackTitle = trackTitle.replace(".mp3", "");
-        setLoadBtnText(ws, trackTitle);
+        setLoadBtnText(wsRight, trackTitle);
     };
     
 }
@@ -1834,15 +1837,15 @@ function groupByConsecutiveIntegers(arr) {
     console.log(arr);
     var result = [];
     for (var i=0; i < arr.length - 1; i++) {
-        console.log(i, arr[i]);
+        //console.log(i, arr[i]);
         var temp = [];
         temp.push(arr[i]);
         while (i < arr.length-1 && Math.abs(arr[i+1][0] - arr[i][0]) === 1) {
-            console.log(arr[i], arr[i+1]);
+            // console.log(arr[i], arr[i+1]);
             i += 1;
             temp.push(arr[i])
         }
-        console.log("TEMP ", temp);
+        // console.log("TEMP ", temp);
         result.push(temp);
     }
     return result;
