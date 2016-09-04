@@ -19,15 +19,16 @@ $(function() {
         
     };
 });
-
+var XXX;
 $(function() {
-    $('#xFader').slider({
+    XXX = $('#xFader').slider({
         handle: "custom",
         tooltip: 'hide',
         min: 0,
         max: 100,
         step: 0.1,
-        value: 50
+        value: 50,
+        id: "xFaderSlider"
     });
 });
 
@@ -48,6 +49,24 @@ $(function(){
 });
 
 var knobArray = [];
+
+
+function autoXFade(target, duration) {
+    nSteps = 1000;
+    var currentVal = XXX.slider('getValue');
+    var step;
+    // fromWS === wsLeft? step = (100 - currentVal) / nSteps : step = -currentVal / nSteps;
+    step = (target - currentVal) / nSteps;
+    var stepTime = duration / nSteps;
+    for (var i = 0; i < nSteps; i++) {
+        setTimeout(function() {
+            currentVal = currentVal + step;
+            console.log(i, currentVal, stepTime);
+            XXX.slider('setValue', currentVal);
+            xFade();
+        }, stepTime * i);
+    }
+}
 
 
 var LPKnobs = $(".LPdial").knob({
@@ -512,8 +531,15 @@ function setupAudioNodes(ws) {
         // console.log("now processing", ws.ws.getCurrentTime());
         var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
         if ( (ws.realBeatGrid[ws.lastSeg] - (ws.ws.getCurrentTime() * 44100)) < ws.realInterval && !ws.hasTransitioned) {
+            // IF THE CURRENT TIME IS LESS THAN AN INTERVAL AWAY FROM THE 
+            // LAST SEG, START THE TRANSITION
             ws.hasTransitioned = true;
             playPause(wsOther);
+            console.log("WILL XFADE TO 50 in ", (60 / ws.BPM) * 32000)
+            autoXFade(50, (60 / ws.BPM) * 32000);
+            var t;
+            (ws === wsLeft)? t = 100 : t = 0;
+            setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / ws.BPM) * 48000); autoXFade(t, (60 / ws.BPM) * 32000)}, (60 / ws.BPM) * 48000);
         }
         
  
@@ -752,10 +778,6 @@ function isReady(ws) {
 }
 
 
-function crossFade(fromWS, toWS) {
-    // AUTOMATIC X-FADE FROM ONE DECK TO THE OTHER
-    
-}
 
 
 wavesurferLeft.on('ready', function () {
