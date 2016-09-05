@@ -49,21 +49,61 @@ $(function(){
 var knobArray = [];
 
 
+function autoXFadeHelper(fromWS, toWS) {
+    autoXFade(50, (60 / toWS.BPM) * 32000);
+    var t;
+    (toWS === wsRight)? t = 100 : t = 0;
+    setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / toWS.BPM) * 48000); autoXFade(t, (60 / toWS.BPM) * 32000)}, (60 / toWS.BPM) * 48000);
+}
+
 function autoXFade(target, duration) {
-    nSteps = 1000;
+    nSteps1 = 1000;
     var currentVal = xFader.slider('getValue');
-    var step;
+    // var step;
     // fromWS === wsLeft? step = (100 - currentVal) / nSteps : step = -currentVal / nSteps;
-    step = (target - currentVal) / nSteps;
-    var stepTime = duration / nSteps;
-    for (var i = 0; i < nSteps; i++) {
+    step1 = (target - currentVal) / nSteps1;
+    var stepTime = duration / nSteps1;
+    for (var i = 0; i < nSteps1; i++) {
         setTimeout(function() {
-            currentVal = currentVal + step;
+            currentVal = currentVal + step1;
             console.log(i, currentVal, stepTime);
             xFader.slider('setValue', currentVal);
             xFade();
         }, stepTime * i);
     }
+}
+
+
+function autoLPSweepUp(ws, duration) {
+    if (ws.onFilterArray.indexOf(ws.LP) === -1) {
+        ws.onFilterArray.push(ws.LP);
+        ws.ws.backend.setFilters(ws.onFilterArray);
+        ws.LPbutton.className = "filter buttonSelected";
+    }
+    ws.LP.frequency.value = 0;
+    
+    // var step2;
+    // step2 = (ws - currentVal) / nSteps1;
+    
+    nSteps2 = 1000;
+    var stepTime = duration / nSteps2;
+    
+    currentVal = 0;
+    var stepTime = duration / nSteps2;
+    for (var i = 0; i < nSteps2; i++) {
+        setTimeout(function() {
+            currentVal = currentVal + 20000 / duration;
+            // console.log(i, currentVal, stepTime);
+            ws.LP.frequency.value = currentVal;
+            knobArray[wsArray.indexOf(ws)].val(currentVal);
+            // $(".LPdial")[wsArray.indexOf(ws)].value = currentVal.toString();
+
+        }, stepTime * i);
+    }
+}
+
+function autoLPTransition(target, duration) {
+    
 }
 
 
@@ -546,13 +586,19 @@ function setupAudioNodes(ws) {
         if ( (ws.realBeatGrid[ws.lastSeg] - (ws.ws.getCurrentTime() * 44100)) < ws.realInterval && !ws.hasTransitioned && wsOther.isLoaded) {
             // IF THE CURRENT TIME IS LESS THAN AN INTERVAL AWAY FROM THE 
             // LAST SEG, START THE TRANSITION
-            ws.hasTransitioned = true;
+            
             playPause(wsOther);
+            doTransition(ws, wsOther, (60 / ws.BPM) * 112000);
+            // ws.hasTransitioned = true;
+            
             console.log("WILL XFADE TO 50 in ", (60 / ws.BPM) * 32000)
+            // autoXFadeHelper(ws, wsOther);
+            /*
             autoXFade(50, (60 / ws.BPM) * 32000);
             var t;
             (ws === wsLeft)? t = 100 : t = 0;
             setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / ws.BPM) * 48000); autoXFade(t, (60 / ws.BPM) * 32000)}, (60 / ws.BPM) * 48000);
+            */
         }
         
  
@@ -595,6 +641,17 @@ function setupAudioNodes(ws) {
         
     };
 }
+
+var transitionArray = [autoXFadeHelper, autoLPSweepUp];
+function doTransition(fromWS, toWS, duration) {
+    fromWS.hasTransitioned = true;
+    console.log("DO TRANSITION");
+    var transition = transitionArray[Math.floor(Math.random()*2)];
+    console.log(transition);
+    // transition(fromWS, toWS, duration);
+    autoXFadeHelper(fromWS, toWS);
+}
+
 
 getAverageVolume = function(array) {
     var values = 0;
@@ -981,6 +1038,7 @@ var fTIMEOUT = function() {
 };
 autoMixUpload.addEventListener("change", function() {
     console.log("AUTOMIXUPLOAD");
+    // $(".startButton").each(function(idx, obj) {obj.disabled = true;});
     if (autoMixUpload.files.length > 0) {
         for (var i = 0; i < autoMixUpload.files.length; i++) {
             playlist.push(autoMixUpload.files[i]);
@@ -999,6 +1057,7 @@ autoMixUpload.addEventListener("change", function() {
 function playMix() {
     // LOAD AND PLAY THE SONGS IN THE PLAYLIST
     
+    $(".startButton").each(function(idx, obj) {obj.disabled = true;});
     xFader.slider('setValue', 0);
     xFade();
     if (playlist.length > 0) {        
