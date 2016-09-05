@@ -5,23 +5,21 @@ var masterTempo = 140;
 $(function() {
     console.log(wsArray.length);
     for (var i=0; i < wsArray.length; i++) {
-        
         var DRspans = $(wsArray[i].HTMLtable).find(".dialRow").find('span');
         console.log(i, wsArray[i].HTMLtable, DRspans);
         for (var j=0; j < DRspans.length; j++) {
           DRspans[j].style.padding = "7px";
             var button = $(DRspans[j]).find('input')[0];
             console.log(button.value);
-            // $(button).on("change", function() {console.log("HELLO")})
         };
-        // $(DRspans[0]).closest("td")[0].style.paddingLeft = "10px";
         $(DRspans[0]).closest("td")[0].style.paddingTop = "20px";
-        
     };
 });
-var XXX;
+
+
+var xFader;
 $(function() {
-    XXX = $('#xFader').slider({
+    xFader = $('#xFader').slider({
         handle: "custom",
         tooltip: 'hide',
         min: 0,
@@ -53,7 +51,7 @@ var knobArray = [];
 
 function autoXFade(target, duration) {
     nSteps = 1000;
-    var currentVal = XXX.slider('getValue');
+    var currentVal = xFader.slider('getValue');
     var step;
     // fromWS === wsLeft? step = (100 - currentVal) / nSteps : step = -currentVal / nSteps;
     step = (target - currentVal) / nSteps;
@@ -62,7 +60,7 @@ function autoXFade(target, duration) {
         setTimeout(function() {
             currentVal = currentVal + step;
             console.log(i, currentVal, stepTime);
-            XXX.slider('setValue', currentVal);
+            xFader.slider('setValue', currentVal);
             xFade();
         }, stepTime * i);
     }
@@ -177,7 +175,8 @@ function playPause(ws) {
             ws.ws.pause();
             clearInterval(setIntervalFunc);
             currentPlayer.className = "column2";
-            $($(ws.HTMLtable).parents('div')[0]).css("box-shadow", "0px 0px 0px 0px #fff");
+            // $($(ws.HTMLtable).parents('div')[0]).css("box-shadow", "0px 0px 0px 0px #fff");
+            $(ws.HTMLtable).parents('div')[1].className = "column2";
         } else {
             if (wsOther.isRunning) {
                 // SET THE PLAYBACKRATE SO THAT THE SELECTED WS 
@@ -576,7 +575,8 @@ function setupAudioNodes(ws) {
         if (ws.isRunning) {
             $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", secondParam);
         } else {
-            $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", "0px 0px 0px 0px #fff")
+            // $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", "0px 0px 0px 0px #fff")
+            $($(wsLeft.HTMLtable).parents("div")[1]).removeAttr('style');
         }
         
         
@@ -763,6 +763,9 @@ function isReady(ws) {
     // GET THE BEAT GRID
     getBPM(ws);
     getBeatArray(ws);
+    var s = setInterval(function() {
+        // console.log("SETINTERVAL THING", ws.analysisDone);
+        if (ws.analysisDone) {
     findSegments(ws);
     
     setupAudioNodes(ws);
@@ -782,10 +785,13 @@ function isReady(ws) {
         playPause(ws);
         ws.isRunning = false;
         if (playlist.length > 0) {
-            var nextTrack = playlist.pop();
+            var nextTrack = playlist.shift();
             loadBlobToDeck(ws, nextTrack);
         };
     });
+            clearInterval(s);
+        }
+    }, 500);
 };
 
 
@@ -937,11 +943,27 @@ rightDeckUpload.addEventListener("change", function() {
 var autoMixUpload = document.querySelector("#autoMixUpload");
 var playlist = [];
 var f = function() {
-    playPause(wsLeft);
-    if (playlist.length > 0) {
-        wsRight.ws.loadBlob(playlist.pop());
+    console.log("SET INTERVAL", wsLeft.analysisDone);
+    if (wsLeft.analysisDone) {
+        playPause(wsLeft);
+        if (playlist.length > 0) {
+            wsRight.ws.loadBlob(playlist.shift();
+        };  
+        wsLeft.ws.un("ready", f);
     };
-    wsLeft.ws.un("ready", f);
+};
+var fTIMEOUT = function() {
+    var g = setInterval(function(playlist) {
+        console.log("SET INTERVAL", wsLeft.analysisDone);
+        if (wsLeft.analysisDone) {
+            playPause(wsLeft);
+            if (playlist.length > 0) {
+                wsRight.ws.loadBlob(playlist.shift());
+            };  
+            wsLeft.ws.un("ready", f);
+            clearInterval(g);
+        };
+    }, 2000, playlist);
 };
 autoMixUpload.addEventListener("change", function() {
     console.log("AUTOMIXUPLOAD");
@@ -952,7 +974,7 @@ autoMixUpload.addEventListener("change", function() {
     };
     
     if (playlist.length > 0) {
-        wsLeft.ws.loadBlob(playlist.pop());
+        wsLeft.ws.loadBlob(playlist.shift();
         wsLeft.ws.on("ready", f);
     }
     
@@ -963,21 +985,15 @@ autoMixUpload.addEventListener("change", function() {
 function playMix() {
     // LOAD AND PLAY THE SONGS IN THE PLAYLIST
     
-    XXX.slider('setValue', 0);
+    xFader.slider('setValue', 0);
     xFade();
     if (playlist.length > 0) {        
         var nextTrack = playlist.pop();
-        wsLeft.ws.loadBlob(nextTrack);
-        var trackTitle = nextTrack['name'];
-        trackTitle = trackTitle.replace(".mp3", "");
-        setLoadBtnText(wsLeft, trackTitle);
+        loadBlobToDeck(nextTrack);
     };
     if (playlist.length > 0) {
         var nextTrack = playlist.pop();
-        wsRight.ws.loadBlob(nextTrack);
-        var trackTitle = nextTrack['name'];
-        trackTitle = trackTitle.replace(".mp3", "");
-        setLoadBtnText(wsRight, trackTitle);
+        loadBlobToDeck(nextTrack);
     };
     
 }
@@ -1530,7 +1546,7 @@ function getFirstSegment(ws) {
     console.log(ws.firstSeg);
 }
 
-
+var topScore;
 function getBeatArray(ws) {
     // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
     
@@ -1558,10 +1574,13 @@ function getBeatArray(ws) {
     
     var result = [];
     var c = ws.ws.backend.buffer.getChannelData(0);
-    var topScore = 0;
+    topScore = 0;
     var m = 0;
     
-    for (i = 0; i < (60/ws.BPM)*44100; i++) {
+    for (var i = 0; i < (60/ws.BPM)*44100; i++) {
+        // $('body').hide().show(0);
+            
+            // console.log("SET TIMEOUT THINGY", i);
         // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
         if (i%100 === 0) {
             console.log(i);
@@ -1573,7 +1592,7 @@ function getBeatArray(ws) {
             // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
             //score += c[Math.round(j)];
             // score += findDistanceToNearestInArray(Math.round(j), peakArray)
-            for (var k = -20; k < 20; k++) {
+            for (var k = -10; k <= 10; k++) {
                 if (peakArray.indexOf(j+k) > -1) {
                     score++;
                     break;
@@ -1599,7 +1618,7 @@ function getBeatArray(ws) {
             result = temp;
         };
         m++;
-    }
+    };
     var temp2 = [];
     for (var j = result[0]; j < ws.ws.backend.buffer.length; j += interval) {
         temp2.push(Math.round(j));
@@ -1646,8 +1665,140 @@ function getBeatArray(ws) {
     // contextH.stroke();
     
     console.log(getAverageRMS(ws));
+    ws.analysisDone = true;
     
-    return result;
+    
+    // return result;
+}
+
+function getBeatArrayTIMEOUT(ws) {
+    // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
+    
+    console.log("GET BEAT ARRAY")
+    
+    // FIND MAXIMUM ZOOM
+    var zoom = 0;
+    ws.ws.zoom(0);
+    // CANVAS APPARENTLY CANNOT EXCEED ~32400
+    // KEEP ZOOMING UNTIL LIMIT IS REACHED
+    while (ws.waveformCanvas.width < 32400) {
+        ws.ws.zoom(zoom);
+        zoom++;
+    }
+    ws.ws.zoom(zoom-2);
+    
+    
+    ws.peakArray = getPeaksAtThreshold(ws);
+    var peakArray = ws.peakArray.filter(function(a) {return a < ws.ws.backend.buffer.length/4});
+    // var peakArray = ws.peakArray.slice(0,Math.floor(ws.peakArray.length/2));
+    // peakArray = peakArray.slice(Math.floor(peakArray.length/2), Math.floor(peakArray.length/2 + peakArray.length/10));
+
+    var interval = BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
+    console.log(interval);
+    
+    var result = [];
+    var c = ws.ws.backend.buffer.getChannelData(0);
+    topScore = 0;
+    var m = 0;
+    
+    for (var a = 0; a < (60/ws.BPM)*44100; a+=2) {
+        // $('body').hide().show(0);
+        for (var b = 0; b < 2; b++) {
+            
+            var i = a+b;
+        setTimeout(function(i, ws, peakArray, interval) {
+            // console.log("SET TIMEOUT THINGY", i);
+        // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
+        if (i%100 === 0) {
+            console.log(i);
+        }
+        var score = 0;
+        var n = 0;
+        var temp = [];
+        for (var j = i; j < ws.ws.backend.buffer.length/4; j += interval) {
+            // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
+            //score += c[Math.round(j)];
+            // score += findDistanceToNearestInArray(Math.round(j), peakArray)
+            for (var k = -20; k < 20; k++) {
+                if (peakArray.indexOf(j+k) > -1) {
+                    score++;
+                    break;
+                }
+            }
+            temp.push(Math.round(j));
+            n++;
+        }
+        score /= n;
+        /*
+        score = temp.filter(function(obj) {
+            for (var k = -100; k < 100;) {
+                if (peakArray.indexOf(obj+k) > -1) {
+                    return obj
+                }
+            }
+        }).length;
+        */
+        if (score > topScore) {
+            console.log("NEW TOPSCORE");
+            console.log("score", topScore, score, temp, n, m);
+            topScore = score;
+            result = temp;
+        };
+        m++;
+            if (i + 1 > (60/ws.BPM)*44100) {
+                var temp2 = [];
+    for (var j = result[0]; j < ws.ws.backend.buffer.length; j += interval) {
+        temp2.push(Math.round(j));
+    };
+    result = temp2;
+    ws.realBeatGrid = result;
+    ws.realInterval = interval;
+    ws.realFirstPeak = temp[0];
+    
+    var ctx = ws.waveformCtx
+    ctx.beginPath();
+    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
+    for (var i=0; i< peakArray.length; i++) {
+        var x = peakArray[i];
+        var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
+        // console.log(i,peaksArray[i],i*scale);
+        ctx.moveTo(y, 0);
+        ctx.lineTo(y, ws.waveformCanvas.height);
+        // Round the interval
+        // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
+    }
+    ctx.strokeStyle = "#fff";
+    ctx.stroke();
+    
+    ctx.beginPath();
+    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
+    for (var i=0; i< result.length; i++) {
+        var x = result[i];
+        var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
+        // console.log(i,peaksArray[i],i*scale);
+        ctx.moveTo(y, 0);
+        ctx.lineTo(y, ws.waveformCanvas.height);
+        // Round the interval
+        // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
+    }
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
+    
+    console.log("REALFIRSTPEAK", ws.realFirstPeak);
+    ctx.beginPath();
+    ctx.lineWidth = 5;
+    ctx.moveTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, 0);
+    ctx.lineTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, ctx.height);
+    // contextH.stroke();
+    
+    console.log(getAverageRMS(ws));
+                ws.analysisDone = true;
+        }}, i*5, i, ws, peakArray, interval);
+        };
+    };
+    
+    
+    // return result;
 }
 
 function findDistanceToNearestInArray(int, arr) {
@@ -2010,7 +2161,7 @@ function hiBeats(ws, bpm) {
 
 
 function goToBeat(ws, n) {
-    ws.ws.seekTo(ws.realBeatGrid[n] / ws.ws.backend.buffer.length);
+    ws.ws.seekAndCenter(ws.realBeatGrid[n] / ws.ws.backend.buffer.length);
 }
 
 
