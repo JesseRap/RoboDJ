@@ -304,3 +304,17 @@ wave > canvas {
 .jumobtron {
     padding: 200px !important;
 }
+
+
+.progressMeter {
+    visibility: hidden;
+    background-color: black;
+    font-size: 15px;
+    color: yellow;
+    box-sizing: border-box;
+    width: 120px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-60px);
+    top: 35%;
+}
