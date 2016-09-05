@@ -8,12 +8,12 @@ body {
     height: 200px;
 }
 
-.custom-file-input::-webkit-file-upload-button {
+.custom-file-input::-webkit-file-upload-button, .playlist-custom-input::-webkit-file-upload-button {
   visibility: hidden;
 }
 
-.custom-file-input::before {
-  content: 'Load a track';
+.custom-file-input::before, .playlist-custom-input::before {
+  
   display: inline-block;
   background: -webkit-linear-gradient(top, #f9f9f9, #e3e3e3);
   border: 1px solid #999;
@@ -27,6 +27,14 @@ body {
   font-size: 10pt;
     width: 265px;
     text-align: center;
+}
+
+.custom-file-input::before {
+    content: 'Load a track';
+}
+
+.playlist-custom-input::before {
+    content: 'Load a playlist';
 }
 
 

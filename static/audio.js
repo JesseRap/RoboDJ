@@ -128,6 +128,8 @@ var hiddenWS = WaveSurfer.create({
     scrollParent: true
 });
 
+hiddenWS.load("static/metronome.wav");
+
 
 
 
@@ -179,6 +181,8 @@ function playPause(ws) {
             $(ws.HTMLtable).parents('div')[1].className = "column2";
         } else {
             if (wsOther.isRunning) {
+                beatMaster = ws;
+                
                 // SET THE PLAYBACKRATE SO THAT THE SELECTED WS 
                 // WILL BE AT SAME TEMPO AS RUNNING WS
                 ws.playbackSpeed = masterTempo / ws.BPM;
@@ -187,7 +191,10 @@ function playPause(ws) {
                 // IF THE OTHER DECK IS RUNNING, FIND THE OFFSET AND
                 // THEN START THE DECK WHEN SYNCED UP
                 
-                var startTime = Date.now();
+                startTime = Date.now();
+                beatsElapsed += currentBeat;
+                
+                var startTime2 = Date.now();
                 // GET THE TIME UNTIL THE OTHER DECK HITS THE NEXT BEAT
                 var currentTimeOther = wsOther.ws.backend.getCurrentTime();
                 var currentFrameOther = Math.round(currentTimeOther * 44100);
@@ -207,12 +214,14 @@ function playPause(ws) {
                 console.log("GONNA START IN ", delay);
                 
                 var endTime = Date.now();
-                console.log("THIS TOOK ", endTime - startTime);
+                console.log("THIS TOOK ", endTime - startTime2);
                 setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100); ws.ws.play(); ws.isRunning = true; currentPlayer.className = "columnSelected";}, delay * (1/ws.playbackSpeed));
                 
                 // ws.ws.play();
                 ws.isRunning = true;
+                
             } else {
+                beatMaster = ws;
                 ws.ws.backend.playbackRate = 1;
                 ws.isRunning = true;
                 masterTempo = ws.BPM;
@@ -317,18 +326,22 @@ document.querySelector("#metronomeButton").addEventListener("click", function() 
 this.className = this.className.replace( /(?:^|\s)buttonDeselected(?!\S)/g , '' ); this.classname += "buttonSelected";
 */
 
+var currentBeat;
+var beatsElapsed;
+var beatMaster;
+var startTime;
 function startMetronome() {
     console.log(metronomeOn);
     if (metronomeOn) {
-        var startTime = new Date().getTime();
-        var currentBeat = 0;
+        startTime = new Date().getTime();
+        currentBeat = 0;
         var x = function() {
             if (hiddenWS.isPlaying()) {hiddenWS.stop()};
             if (currentBeat > 0) {
                 hiddenWS.play();
             };
             var y = new Date().getTime(); 
-            var timeShouldBe = startTime + (wsLeft.realBeatGrid[currentBeat]/44100)*1000;
+            var timeShouldBe = startTime + (beatMaster.realBeatGrid[currentBeat]/44100)*1000;
             var delay = timeShouldBe - y;
             console.log(currentBeat, startTime, y, timeShouldBe, delay); 
             // current = y; hiddenWS.play();
@@ -778,7 +791,7 @@ function isReady(ws) {
     }
     ws.hasTransitioned = false;
     
-    hiddenWS.load("static/metronome.wav");
+    
     
     ws.ws.on('finish', function() {
         console.log("TRACK ENDED");
