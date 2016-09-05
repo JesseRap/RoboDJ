@@ -50,10 +50,10 @@ var knobArray = [];
 
 
 function autoXFadeHelper(fromWS, toWS) {
-    autoXFade(50, (60 / toWS.BPM) * 32000);
+    autoXFade(50, (60 / masterTempo) * 32000);
     var t;
     (toWS === wsRight)? t = 100 : t = 0;
-    setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / toWS.BPM) * 48000); autoXFade(t, (60 / toWS.BPM) * 32000)}, (60 / toWS.BPM) * 48000);
+    setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / masterTempo) * 48000); autoXFade(t, (60 / masterTempo) * 32000)}, (60 / masterTempo) * 48000);
 }
 
 function autoXFade(target, duration) {
@@ -66,7 +66,7 @@ function autoXFade(target, duration) {
     for (var i = 0; i < nSteps1; i++) {
         setTimeout(function() {
             currentVal = currentVal + step1;
-            console.log(i, currentVal, stepTime);
+            // console.log(i, currentVal, stepTime);
             xFader.slider('setValue', currentVal);
             xFade();
         }, stepTime * i);
@@ -74,12 +74,22 @@ function autoXFade(target, duration) {
 }
 
 
-function autoLPSweepUp(ws, duration) {
-    if (ws.onFilterArray.indexOf(ws.LP) === -1) {
-        ws.onFilterArray.push(ws.LP);
-        ws.ws.backend.setFilters(ws.onFilterArray);
-        ws.LPbutton.className = "filter buttonSelected";
+function autoLPHelper(fromWS, toWS) {
+    if (toWS.onFilterArray.indexOf(toWS.LP) === -1) {
+        toggleLP(toWS);
     }
+    autoXFade(50, 5000);
+    var d = (60/masterTempo) * 32000;
+    autoLPSweepUp(toWS, d);
+    var t = (toWS === wsRight)? 100 : 0;
+    setTimeout(function() {toggleLP(toWS)}, d);
+    setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / masterTempo) * 48000); autoXFade(t, (60 / masterTempo) * 32000)}, (60 / masterTempo) * 48000);
+    
+}
+
+function autoLPSweepUp(ws, duration) {
+    console.log("AUTOLPSWEEPUP", ws.onFilterArray);
+    console.log(ws.onFilterArray);
     ws.LP.frequency.value = 0;
     
     // var step2;
@@ -88,22 +98,57 @@ function autoLPSweepUp(ws, duration) {
     nSteps2 = 1000;
     var stepTime = duration / nSteps2;
     
-    currentVal = 0;
+    var currentVal2 = 0;
     var stepTime = duration / nSteps2;
+    console.log(nSteps2, duration, stepTime);
     for (var i = 0; i < nSteps2; i++) {
         setTimeout(function() {
-            currentVal = currentVal + 20000 / duration;
+            currentVal2 = currentVal2 + (2000 / nSteps2);
             // console.log(i, currentVal, stepTime);
-            ws.LP.frequency.value = currentVal;
-            knobArray[wsArray.indexOf(ws)].val(currentVal);
+            ws.LP.frequency.value = currentVal2;
+            knobArray[wsArray.indexOf(ws)].val(currentVal2);
             // $(".LPdial")[wsArray.indexOf(ws)].value = currentVal.toString();
 
         }, stepTime * i);
+    };
+};
+
+
+function autoHPHelper(fromWS, toWS) {
+    if (toWS.onFilterArray.indexOf(toWS.HP) === -1) {
+        toggleHP(toWS);
     }
+    autoXFade(50, 5000);
+    var d = (60/masterTempo) * 32000;
+    autoHPSweepDown(toWS, d);
+    var t = (toWS === wsRight)? 100 : 0;
+    setTimeout(function() {toggleHP(toWS)}, d);
+    setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / masterTempo) * 48000); autoXFade(t, (60 / masterTempo) * 32000)}, (60 / masterTempo) * 48000);
+    
 }
 
-function autoLPTransition(target, duration) {
+function autoHPSweepDown(ws, duration) {
+    console.log("AUTOHPSWEEPDOWN", ws.onFilterArray);
+    ws.HP.frequency.value = 10000;
     
+    nSteps3 = 1000;
+    var stepTime = duration / nSteps3;
+    
+    var currentVal3 = 10000;
+    var stepTime = duration / nSteps3;
+    console.log(nSteps3, duration, stepTime);
+    for (var i = 0; i < nSteps3; i++) {
+        setTimeout(function() {
+            
+            currentVal3 = currentVal3 - (10000 / nSteps3);
+            console.log(currentVal3)
+            // console.log(i, currentVal, stepTime);
+            ws.HP.frequency.value = currentVal3;
+            knobArray[wsArray.indexOf(ws)+4].val(currentVal3);
+            // $(".LPdial")[wsArray.indexOf(ws)].value = currentVal.toString();
+
+        }, stepTime * i);
+    };
 }
 
 
@@ -258,7 +303,7 @@ function playPause(ws) {
                 setTimeout(function() {console.log(wsOther.ws.backend.getCurrentTime()*44100); ws.ws.play(); ws.isRunning = true; currentPlayer.className = "columnSelected";}, delay * (1/ws.playbackSpeed));
                 
                 // ws.ws.play();
-                ws.isRunning = true;
+                // ws.isRunning = true;
                 
             } else {
                 beatMaster = ws;
@@ -632,7 +677,7 @@ function setupAudioNodes(ws) {
         var secondParam = "0 0 "+shadowSize.toString()+"px "+shadowSize.toString()+"px rgba(81, 203, 238, 1)";
         // console.log(average, shadowSize, secondParam);
         if (ws.isRunning) {
-            $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", secondParam);
+            // $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", secondParam);
         } else {
             // $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", "0px 0px 0px 0px #fff")
             $($(wsLeft.HTMLtable).parents("div")[1]).removeAttr('style');
@@ -642,14 +687,14 @@ function setupAudioNodes(ws) {
     };
 }
 
-var transitionArray = [autoXFadeHelper, autoLPSweepUp];
+var transitionArray = [autoXFadeHelper, autoLPHelper];
 function doTransition(fromWS, toWS, duration) {
     fromWS.hasTransitioned = true;
     console.log("DO TRANSITION");
     var transition = transitionArray[Math.floor(Math.random()*2)];
     console.log(transition);
     // transition(fromWS, toWS, duration);
-    autoXFadeHelper(fromWS, toWS);
+    autoLPHelper(fromWS, toWS);
 }
 
 
@@ -862,7 +907,7 @@ function isReady(ws) {
             clearInterval(s);
             drawEQBars(ws);
         }
-    }, 500);
+    }, 1000);
 };
 
 
@@ -972,10 +1017,10 @@ function changeVolumeRight() {
 
 function xFade() {
     var xFadeValue = (document.querySelector("#xFader").value-50) / 50.0;
-    console.log(xFadeValue);
+    //console.log(xFadeValue);
     var leftVal = Math.sqrt(0.5 * (1 - xFadeValue));
     var rightVal = Math.sqrt(0.5 * (1 + xFadeValue));
-    console.log(leftVal, rightVal);
+    // console.log(leftVal, rightVal);
     wsLeft.gainNode.gain.value = leftVal;
     wsRight.gainNode.gain.value = rightVal;
 }
@@ -1772,7 +1817,7 @@ function getBeatArray(ws) {
             }
         }
     
-    },10, ws, interval);
+    },50, ws, interval);
     // return result;
 }
 
