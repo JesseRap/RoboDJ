@@ -575,6 +575,7 @@ function setupAudioNodes(ws) {
         if (ws.isRunning) {
             $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", secondParam);
         } else {
+            console.log("ELSSEEE");
             // $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", "0px 0px 0px 0px #fff")
             $($(wsLeft.HTMLtable).parents("div")[1]).removeAttr('style');
         }
@@ -947,7 +948,7 @@ var f = function() {
     if (wsLeft.analysisDone) {
         playPause(wsLeft);
         if (playlist.length > 0) {
-            wsRight.ws.loadBlob(playlist.shift();
+            wsRight.ws.loadBlob(playlist.shift());
         };  
         wsLeft.ws.un("ready", f);
     };
@@ -974,7 +975,7 @@ autoMixUpload.addEventListener("change", function() {
     };
     
     if (playlist.length > 0) {
-        wsLeft.ws.loadBlob(playlist.shift();
+        wsLeft.ws.loadBlob(playlist.shift());
         wsLeft.ws.on("ready", f);
     }
     
