@@ -152,6 +152,25 @@ function autoHPSweepDown(ws, duration) {
 }
 
 
+function autoLoopTransition(fromWS, toWS) {
+    autoXFade(50, 8000);
+    
+}
+
+document.querySelector("#loopButton").addEventListener("click", loop);
+
+function loop(ws=wsLeft) {
+    //var ws = wsLeft;
+    var elapsed = ws.ws.backend.getCurrentTime();
+    var loopLength = (60 / masterTempo) * 8;
+    var loop = ws.ws.addRegion({start: elapsed, 
+                     end: elapsed + loopLength,
+                    loop: true});
+    setTimeout(function() {loop.loop = false}, (60 / masterTempo) * 8);
+}
+
+
+
 var LPKnobs = $(".LPdial").knob({
     // fgColor: "#00ABC6",
     // bgColor: "#666666",
@@ -687,14 +706,14 @@ function setupAudioNodes(ws) {
     };
 }
 
-var transitionArray = [autoXFadeHelper, autoLPHelper];
+var transitionArray = [autoXFadeHelper, autoLPHelper, autoHPHelper];
 function doTransition(fromWS, toWS, duration) {
     fromWS.hasTransitioned = true;
     console.log("DO TRANSITION");
-    var transition = transitionArray[Math.floor(Math.random()*2)];
+    var transition = transitionArray[Math.floor(Math.random()*transitionArray.length)];
     console.log(transition);
-    // transition(fromWS, toWS, duration);
-    autoLPHelper(fromWS, toWS);
+    transition(fromWS, toWS, duration);
+    // autoLPHelper(fromWS, toWS);
 }
 
 
@@ -913,7 +932,13 @@ function isReady(ws) {
 
 function loadBlobToDeck(ws, blob) {
     // LOAD A FILE INTO A DECK AND CHANGE THE TEXT OF THE <INPUT>
+    clearGraph(ws);
+    
+    ws.waveformCtx.clearRect(0,0,ws.waveformCanvas.width, ws.waveformCanvas.height);
+    
     ws.ws.loadBlob(blob);
+    
+    
             
     var trackTitle = blob['name'];
     trackTitle = trackTitle.replace(".mp3", "");
@@ -1128,6 +1153,11 @@ function clearGraphLeft() {
     wsLeft.RMS_array = [];
     var canvas = document.querySelector("#graphLeft")
     canvas.width = canvas.width
+}
+
+function clearGraph(ws) {
+    ws.RMS_array = [];
+    ws.RMSgraph.width = ws.RMSgraph.width
 }
 
 function clearGraphRight() {
@@ -1511,7 +1541,7 @@ function countIntervalsBetweenNearbyPeaks(peaks) {
 
 function intervalToBPM(interval, samplerate) {
     // CONVERT A SAMPLE INTERVAL TO CORRESPONDING BPM
-    result = 60 / (interval / samplerate)
+    var result = 60 / (interval / samplerate)
     // COERCE THE RESULT TO A VALUE BETWEEN 80 AND 160
     while (result < 80) {
         result *= 2
@@ -1708,7 +1738,7 @@ function getBeatArray(ws) {
         // $('body').hide().show(0);
     counter = 0;
     var SI = setInterval(function(ws, interval) {
-        console.log("IT IS I ", counter);
+        // console.log("IT IS I ", counter);
         for (var q = 0; q < 100; q++) {
             
             var progress = Math.round( (counter / ((60/ws.BPM)*44100)) * 100);
@@ -1716,7 +1746,7 @@ function getBeatArray(ws) {
             var progressMeter = (ws === wsLeft)? $(".progressMeter")[0] : $(".progressMeter")[1];
             $(progressMeter).css('visibility', 'visible');
             if (counter % 100 === 0) {
-                console.log(counter, (60/ws.BPM)*44100, progress, progressMeter);
+                console.log(counter, (60/ws.BPM)*44100, progress);
                 progressMeter.innerHTML = "LOADING : " + progress.toString() + "%";
             };
             // $($(".progressMeter")[0]).parent()[0].hide().show(0);
@@ -1785,6 +1815,7 @@ function getBeatArray(ws) {
                     // Round the interval
                     // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
                 }
+                ctx.lineWidth = 2;
                 ctx.strokeStyle = "#fff";
                 ctx.stroke();
 
@@ -2099,7 +2130,7 @@ function getDifferences(arr) {
     // RETURNS A LIST OF THE DIFFERENCES BETWEEN THE RMS OF ONE 
     // N-BEAT SECTION AND ANOTHER
     console.log("GET DIFFERENCES");
-    result = [];
+    var result = [];
     for (var i = N/2; i < arr.length-(N*2); i++) {
         result.push([i+N-1, Math.abs(arr[i][1]-arr[i+N][1]),
                     arr[i][1], arr[i+N][1]]);
@@ -2109,7 +2140,7 @@ function getDifferences(arr) {
 }
 
 function smoothArray(arr, shift) {
-    result = 1000000000;
+    var result = 1000000000;
     var correctX = 0
     var costArray = []
     for (var i = 0; i < 4; i++) {
@@ -2175,7 +2206,7 @@ function findSegments(ws) {
         grouped[i].sort(function(a,b) {return b[1] - a[1]})
     }
     console.log(grouped);
-    result = grouped.map(function(a) {return a[0][0]})
+    var result = grouped.map(function(a) {return a[0][0]})
     result = smoothArray(result);
     
     var loudest = 0;
@@ -2184,11 +2215,11 @@ function findSegments(ws) {
     console.log(result);
     for (var i = 0; i < result.length; i++) {
         var r = (ws.RMSAverages[result[i]][1] - ws.RMSAverages[result[i]-N][1]);
-        console.log("THIS ", i, result[i], r);
+        // console.log("THIS ", i, result[i], r);
         ws.segVolArray.push(r);
         console.log(r, ws.loudestSeg);
         if (r !== Infinity && r > loudest) {
-            console.log("r is now ", r);
+            // console.log("r is now ", r);
             loudest = r;
             ws.loudestSeg = result[i];
         }
