@@ -23,6 +23,7 @@ app.get('/', (request, response) => {
   response.render(path.join(__dirname, 'views/layouts/main'), {
     audio: 'static/audio.js',
     tests: 'static/tests.js',
+    worker: 'static/work.js',
     deckIDs: deckIDs
   })
 })

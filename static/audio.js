@@ -852,6 +852,9 @@ function isReady(ws) {
     
     
     // GET THE BEAT GRID
+    
+    
+    
     getBPM(ws);
     getBeatArray(ws);
     var s = setInterval(function() {
@@ -1540,6 +1543,13 @@ function getBeatArray(ws) {
     
     var result = [];
     var c = ws.ws.backend.buffer.getChannelData(0);
+    
+    var worker = new Worker("static/work.js");
+    worker.postMessage([c, ws.BPM, ws.peakArray]);
+    worker.addEventListener('message', function(e) {
+        console.log(e.data);
+    }, false);
+    
     topScore = 0;
     var m = 0;
 
