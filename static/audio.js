@@ -1,6 +1,7 @@
 var hash;
 var token = null;
 var masterTempo = 140;
+var knobArray = [];
 
 $(function() {
     console.log(wsArray.length);
@@ -17,6 +18,7 @@ $(function() {
 });
 
 
+// SET UP CROSSFADER
 var xFader;
 $(function() {
     xFader = $('#xFader').slider({
@@ -30,14 +32,15 @@ $(function() {
     });
 });
 
+// CALL THE XFADE() FUNCTION ON CHANGING SLIDER VALUE
 $("#xFader").on('change', function(){xFade()});
-
+// STYLE X-FADER
 $(function() {
     $(".slider").each(function(idx, el) {el.style['width']= "400px"; el.style["marginTop"] = "2px"})
     
 });
 
-
+// SET THE BACKGROUND COLOR OF THE EQ METERS
 $(function(){
     for (i in wsArray) {
         var ws = wsArray[i];
@@ -46,27 +49,33 @@ $(function(){
     }
 });
 
-var knobArray = [];
 
 
 function autoXFadeHelper(fromWS, toWS) {
+    // AUTOMATES AN X-FADE FROM ONE DECK TO THE OTHER
     autoXFade(50, (60 / masterTempo) * 32000);
+    // GET THE TARGET LOCATION
     var t;
     (toWS === wsRight)? t = 100 : t = 0;
+    
     setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / masterTempo) * 48000); autoXFade(t, (60 / masterTempo) * 32000)}, (60 / masterTempo) * 48000);
 }
 
+
 function autoXFade(target, duration) {
+    // AUTOMATE X-FADE TO THE TARGET POSITION (0-100) IN THE DURATION
+    
+    // THE NUMBER OF STEPS FOR THE TRANSITION
     nSteps1 = 1000;
+    // GET THE CURRENT VALUE
     var currentVal = xFader.slider('getValue');
-    // var step;
-    // fromWS === wsLeft? step = (100 - currentVal) / nSteps : step = -currentVal / nSteps;
     step1 = (target - currentVal) / nSteps1;
     var stepTime = duration / nSteps1;
+    
     for (var i = 0; i < nSteps1; i++) {
+        // FOR EACH TIME-STEP, SET A TIMEOUT TO MOVE THE SLIDER AN EXTRA STEP
         setTimeout(function() {
             currentVal = currentVal + step1;
-            // console.log(i, currentVal, stepTime);
             xFader.slider('setValue', currentVal);
             xFade();
         }, stepTime * i);
@@ -75,25 +84,32 @@ function autoXFade(target, duration) {
 
 
 function autoLPHelper(fromWS, toWS) {
+    // AUTOMATE AN LP SWEEP TRANSITION WITH AN X-FADE
+    
+    // IF THE LP OF THE TARGET IS OFF, TURN IT ON
     if (toWS.onFilterArray.indexOf(toWS.LP) === -1) {
         toggleLP(toWS);
     }
+    // X-FADE TO THE MIDDLE
     autoXFade(50, 5000);
+    // LP SWEEP UP FOR 8 BARS
     var d = (60/masterTempo) * 32000;
     autoLPSweepUp(toWS, d);
+    // FIND THE TARGET X-FADER VALUE
     var t = (toWS === wsRight)? 100 : 0;
+    // TURN OFF THE LP AFTER THE LP SWEEP
     setTimeout(function() {toggleLP(toWS)}, d);
+    // X-FADE TO THE TARGET
     setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / masterTempo) * 48000); autoXFade(t, (60 / masterTempo) * 32000)}, (60 / masterTempo) * 48000);
     
 }
 
 function autoLPSweepUp(ws, duration) {
+    // AUTOMATE AN LP SWEEP UP
+    
     console.log("AUTOLPSWEEPUP", ws.onFilterArray);
     console.log(ws.onFilterArray);
     ws.LP.frequency.value = 0;
-    
-    // var step2;
-    // step2 = (ws - currentVal) / nSteps1;
     
     nSteps2 = 1000;
     var stepTime = duration / nSteps2;
@@ -101,7 +117,9 @@ function autoLPSweepUp(ws, duration) {
     var currentVal2 = 0;
     var stepTime = duration / nSteps2;
     console.log(nSteps2, duration, stepTime);
+    
     for (var i = 0; i < nSteps2; i++) {
+        // AT EACH STEP, INCREMENT THE LP CUTOFF BY THE CORRECT AMOUNT
         setTimeout(function() {
             currentVal2 = currentVal2 + (2000 / nSteps2);
             // console.log(i, currentVal, stepTime);
@@ -115,19 +133,26 @@ function autoLPSweepUp(ws, duration) {
 
 
 function autoHPHelper(fromWS, toWS) {
+    // AUTOMATE AN HP SWEEP TRANSITION WITH X-FADE
+    
+    // IF THE HP FILTER IS OFF ON THE TARGET DECK, ACTIVATE IT
     if (toWS.onFilterArray.indexOf(toWS.HP) === -1) {
         toggleHP(toWS);
     }
+    // X-FADE TO THE MIDPOINT
     autoXFade(50, 5000);
     var d = (60/masterTempo) * 32000;
     autoHPSweepDown(toWS, d);
     var t = (toWS === wsRight)? 100 : 0;
+    // TURN OFF THE HP AFTER THE SWEEP
     setTimeout(function() {toggleHP(toWS)}, d);
     setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / masterTempo) * 48000); autoXFade(t, (60 / masterTempo) * 32000)}, (60 / masterTempo) * 48000);
     
 }
 
 function autoHPSweepDown(ws, duration) {
+    // AUTOMATE AN HP SWEEP DOWN
+    
     console.log("AUTOHPSWEEPDOWN", ws.onFilterArray);
     ws.HP.frequency.value = 10000;
     
@@ -153,10 +178,11 @@ function autoHPSweepDown(ws, duration) {
 
 
 function autoLoopTransition(fromWS, toWS) {
+    // AUTOMATE A LOOP TRANSITION
     autoXFade(50, 8000);
-    
 }
 
+// TESTING THE LOOP FUNCTIONALITY
 document.querySelector("#loopButton").addEventListener("click", loop);
 
 function loop(ws=wsLeft) {
@@ -170,10 +196,8 @@ function loop(ws=wsLeft) {
 }
 
 
-
+// SET UP THE LP KNOBS
 var LPKnobs = $(".LPdial").knob({
-    // fgColor: "#00ABC6",
-    // bgColor: "#666666",
     fgColor: "#d6eaff",
     bgColor: "#404040",
     thickness: 0.4,
@@ -188,7 +212,7 @@ var LPKnobs = $(".LPdial").knob({
     }
 });
 
-
+// SET UP THE BP KNOBS
 var BPKnobs = $(".BPdial").knob({
     fgColor: "#d6eaff",
     bgColor: "#404040",
@@ -205,7 +229,7 @@ var BPKnobs = $(".BPdial").knob({
     }
 });
 
-
+// SET UP THE HP KNOBS
 var HPKnobs = $(".HPdial").knob({
     fgColor: "#d6eaff",
     bgColor: "#404040",
@@ -242,6 +266,7 @@ $("#playButtonL").on("click", playPauseLeft);
 $("#playButtonR").on("click", playPauseRight);
 $("#hiddenPlayPause").on("click", playPauseHidden);
 
+// SET EVENT HANDLERS FOR THE FILTERS
 $("#LPLeft").on("click", LPLeft);
 $("#BPLeft").on("click", BPLeft);
 $("#HPLeft").on("click", HPLeft);
@@ -258,33 +283,43 @@ function play(ws) {
 }
 
 function findNextHighestInArray(arr, int) {
+    // GIVEN AN ARRAY OF INTEGERS, FIND THE LOWEST INTEGER
+    // THAT'S HIGHER THAN THE INPUT INT
     var arr2 = arr.slice();
     return arr2.filter(function(a) {return a >= int}).sort(function(a,b) {return a-b})[0]
 }
 
 function getPreviousHighestInArray(arr, int) {
+    // GIVEN AN ARRAY OF INTEGERS, FIND THE GREATEST INTEGER
+    // LOWER THAN THE INPUT INT
     var arr2 = arr.slice();
     return arr2.filter(function(a) {return a <= int}).sort(function(a,b) {return b-a})[0];
 }
 
 function playPause(ws) {
+    // FUNCTIONALITY FOR THE PLAY/PAUSE BUTTON
     console.log("PLAYPAUSE");
     var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
     console.log(wsOther);
     var currentPlayer = $(ws.HTMLtable).parents('div')[1];
     console.log(currentPlayer);
     if (ws.isLoaded) {
+        // IF THE WS HAS LOADED A TRACK...
         console.log("ISLOADED");
         if (ws.isRunning) {
+            // IF THE DECK IS RUNNING, JUST STOP IT
             console.log("IS RUNNING, WILL STOP");
             ws.isRunning = false;
             ws.ws.pause();
+            // CLEAR THE METRONOME INTERVAL FUNCTION
             clearInterval(setIntervalFunc);
             currentPlayer.className = "column2";
             // $($(ws.HTMLtable).parents('div')[0]).css("box-shadow", "0px 0px 0px 0px #fff");
+            // RESET THE CSS FOR THE DECK
             $(ws.HTMLtable).parents('div')[1].className = "column2";
         } else {
             if (wsOther.isRunning) {
+                // IF THE OTHER DECK IS RUNNING, START THIS DECK IN SYNC
                 beatMaster = ws;
                 
                 // SET THE PLAYBACKRATE SO THAT THE SELECTED WS 
@@ -325,6 +360,7 @@ function playPause(ws) {
                 // ws.isRunning = true;
                 
             } else {
+                // IF NO DECK IS PLAYING, JUST START THIS ONE
                 beatMaster = ws;
                 ws.ws.backend.playbackRate = 1;
                 ws.isRunning = true;
@@ -338,14 +374,17 @@ function playPause(ws) {
 }
 
 function playPauseLeft() {
+    // PLAY/PAUSE THE LEFT WS
     playPause(wsLeft);
 }
 
 function playPauseRight() {
+    // PLAY/PAUSE THE RIGHT WS
     playPause(wsRight);
 }
 
 function toggleLP(ws) {
+    // TURN THE LP ON/OFF
     console.log("toggleLP");
     console.log(ws.onFilterArray);
     if (ws.onFilterArray.indexOf(ws.LP) > -1) {
@@ -365,6 +404,7 @@ function toggleLP(ws) {
 }
 
 function toggleBP(ws) {
+    // TURN THE BP ON/OFF
     console.log("toggleBP");
     console.log(ws.onFilterArray);
     if (ws.onFilterArray.indexOf(ws.BP) > -1) {
@@ -382,6 +422,7 @@ function toggleBP(ws) {
 }
 
 function toggleHP(ws) {
+    // TURN THE HP ON/OFF
     console.log("toggleHP");
     console.log(ws.onFilterArray);
     if (ws.onFilterArray.indexOf(ws.HP) > -1) {
@@ -422,6 +463,7 @@ function HPRight() {
     toggleHP(wsRight);
 }
 
+// SET UP THE METRONOME
 var setIntervalFunc;
 var metronomeOn = false;
 document.querySelector("#metronomeButton").addEventListener("click", function() {if (metronomeOn) {metronomeOn=false; this.className="buttonDeselected"} else {metronomeOn=true; this.className="buttonSelected"}});
@@ -435,6 +477,7 @@ var beatsElapsed;
 var beatMaster;
 var startTime;
 function startMetronome() {
+    // START THE METRONOME IN TIME WITH THE BEAT
     console.log(metronomeOn);
     if (metronomeOn) {
         startTime = new Date().getTime();
@@ -457,67 +500,9 @@ function startMetronome() {
 }
 
 
-function playPauseLeft2() {
-    // PLAY/PAUSE THE LEFT DECK
-    if (leftIsLoaded) {
-        if (leftIsRunning) {
-            leftIsRunning = false
-            stop(wavesurferLeft)
-        } else {
-            if (rightIsRunning) {
-                console.log("RIGHT IS RUNNING")
-                
-                var startTime = Date.now();
-                // GET THE TIME UNTIL THE RIGHT DECK HITS THE NEXT BEAT
-                var currentTimeR = wsRight.ws.backend.getCurrentTime();
-                var currentFrameR = Math.round(currentTimeR * 44100);
-                var nextBeatR = findNextHighestInArray(wsRight.realBeatGrid, currentFrameR);
-                var diffR = nextBeatR - currentFrameR
-                
-                // GET THE DISTANCE BETWEEN THE LEFT DECK AND THE LAST BEAT
-                var currentTimeL = wsLeft.ws.backend.getCurrentTime();
-                var currentFrameL = Math.round(currentTimeL * 44100);
-                var previousBeatL = getPreviousHighestInArray(wsLeft.realBeatGrid, currentFrameL);
-                var diffL = currentFrameL - previousBeatL;
-                
-                //wsLeft.ws.seekTo(previousBeatL/wsLeft.ws.backend.buffer.length);
-                
-                console.log("RIGHT", wsRight.realBeatGrid, currentTimeR,currentFrameR,nextBeatR,diffR, (diffR/44100)*1000);
-                console.log("LEFT",wsLeft.realBeatGrid, currentTimeL,currentFrameL,previousBeatL,diffL, (diffL/44100)*1000);
-                
-                var delay = (diffR/44100)*1000 + ((diffL/44100)*1000) - 5;
-                if (delay < 0) {delay += BPMToInterval(wsLeft.bpm, 44100)}
-                console.log("GONNA START IN ", delay);
-                
-                var endTime = Date.now();
-                console.log("THIS TOOK ", endTime - startTime);
-                setTimeout(function() {console.log(wsRight.ws.backend.getCurrentTime()*44100), wsLeft.ws.play(); leftIsRunning = true}, delay);
-                
-
-            } else {
-                leftIsRunning = true
-                play(wavesurferLeft)
-            }
-        }
-    }
-}
-
-function playPauseRight2() {
-    // PLAY/PAUSE THE RIGHT DECK
-    if (rightIsLoaded) {
-        if (rightIsRunning) {
-            rightIsRunning = false
-            stop(wavesurferRight)
-        } else {
-            rightIsRunning = true
-            play(wavesurferRight)
-        }
-    }
-}
-
 
 function playPauseHidden() {
-    // PLAY/PAUSE THE RIGHT DECK
+    // PLAY/PAUSE THE HIDDEN DECK
     if (hiddenIsRunning) {
         hiddenIsRunning = false
         stop(hiddenWS)
@@ -545,6 +530,19 @@ console.log(wavesurferLeft)
 
 var wsLeft = new wsObject(wavesurferLeft);
 
+
+// CREATE RIGHT DECK WAVESURFER INSTANCE
+var wavesurferRight = WaveSurfer.create({
+    container: '#waveformR',
+    normalize: true,
+    scrollParent: true,
+    cursorColor: "yellow"
+});
+
+var wsRight = new wsObject(wavesurferRight);
+
+
+// THE CLASS FOR EACH WAVESURFER AND ITS PROPERTIES
 function wsObject(ws) {
     this.ws = ws;
     this.canvas = this.ws.container;
@@ -566,6 +564,7 @@ function wsObject(ws) {
     this.BPbutton = this.filterButtons[1];
     this.HPbutton = this.filterButtons[2];
     
+    // SET UP AND INITIALIZE THE FILTERS
     this.LP = this.ws.backend.ac.createBiquadFilter();
     this.LP.type = "lowpass";
     this.LP.frequency.value = 500;
@@ -588,24 +587,7 @@ function wsObject(ws) {
     
     this.javascriptNode = this.context.createScriptProcessor(2048, 1, 1);
     */
-    
-    
-    
-    
-    
-    
-    
-    
 }
-
-$(function() {
-    for (ws in wsArray) {
-        console.log('wsarray', wsArray[ws]);
-        // setupAudioNodes(wsArray[ws]);
-        
-        
-    }
-})
 
 
 function setupAudioNodes(ws) {
@@ -696,7 +678,7 @@ function setupAudioNodes(ws) {
         var secondParam = "0 0 "+shadowSize.toString()+"px "+shadowSize.toString()+"px rgba(81, 203, 238, 1)";
         // console.log(average, shadowSize, secondParam);
         if (ws.isRunning) {
-            // $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", secondParam);
+            $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", secondParam);
         } else {
             // $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", "0px 0px 0px 0px #fff")
             $($(wsLeft.HTMLtable).parents("div")[1]).removeAttr('style');
@@ -706,14 +688,19 @@ function setupAudioNodes(ws) {
     };
 }
 
+// AN ARRAY CONTAINING THE LIST OF POSSIBLE TRANSITIONS
 var transitionArray = [autoXFadeHelper, autoLPHelper, autoHPHelper];
+
 function doTransition(fromWS, toWS, duration) {
+    // RANDOMLY SELECT A TRANSITION AND PERFORM IT
+    
     fromWS.hasTransitioned = true;
     console.log("DO TRANSITION");
+    // RANDOMLY SELECT TRANSITION
     var transition = transitionArray[Math.floor(Math.random()*transitionArray.length)];
     console.log(transition);
+    // PERFORM THE TRANSITION
     transition(fromWS, toWS, duration);
-    // autoLPHelper(fromWS, toWS);
 }
 
 
@@ -732,39 +719,8 @@ getAverageVolume = function(array) {
     return average;
 }
 
-/*
-// DEFINE LEFT DECK VARIABLES
-var gainNodeL,
-    analyserL,
-    dataArrayL,
-    canvasL = document.querySelector('#canvasLeft'),
-    canvasCtxL = canvasL.getContext("2d"),
-    bufferLengthL,
-    bufferL,
-    RMS_ArrayL = [],
-    beatGridL = [],
-    currentTrackL = "",
-    bpmL;
-   */ 
 var rms_step = 2.5;
 
-/*
-// CONNECT GAIN NODE
-var contextL = wavesurferLeft.backend.ac
-gainNodeL = contextL.createGain();
-console.log(gainNodeL);
-wavesurferLeft.backend.setFilter(gainNodeL);
-*/
-
-// CREATE RIGHT DECK WAVESURFER INSTANCE
-var wavesurferRight = WaveSurfer.create({
-    container: '#waveformR',
-    normalize: true,
-    scrollParent: true,
-    cursorColor: "yellow"
-});
-
-var wsRight = new wsObject(wavesurferRight);
 
 
 $(function() {
@@ -774,16 +730,15 @@ $(function() {
     wsLeft.EQCanvas = document.querySelector("#canvasLeft");
 })
 
-
+// AN ARRAY CONTAINING THE WS OBJECTS
 var wsArray = [wsLeft, wsRight];
 
-    
 
 function drawEQBars(ws) {
+    // DRAW THE EQ BARS
     
     var cnvs = $('.visualizer')[wsArray.indexOf(ws)];
     var ctx = cnvs.getContext("2d");
-
 
     var drawVisual;
     
@@ -858,9 +813,11 @@ function draw2() {
 };
 
 
-// FUNCTION TO CALL ONCE THE WAVESURFER TRACK HAS BEEN LOADED
+
 function isReady(ws) {
+    // FUNCTION TO CALL ONCE THE WAVESURFER TRACK HAS BEEN LOADED
     console.log("IS READY");
+    
     // HELPER FUNCTION FOR DECK-IS-READY
     // var context = ws.backend.ac
     console.log(ws)
@@ -938,14 +895,11 @@ function loadBlobToDeck(ws, blob) {
     
     ws.ws.loadBlob(blob);
     
-    
-            
     var trackTitle = blob['name'];
     trackTitle = trackTitle.replace(".mp3", "");
     setLoadBtnText(ws, trackTitle);
     ws.currentTrack = blob;
 }
-
 
 
 
@@ -968,7 +922,7 @@ wavesurferRight.on('ready', function () {
 
 
 function getRMS(ws, rms_array) {
-    // CALCULATE THE RMS AT EACH NMS_STEP (SECONDS) INTERVAL
+    // CALCULATE THE RMS AT EACH RMS_STEP (SECONDS) INTERVAL
     var rms1 = 0;
     var rms = 0;
     var rms2 = 0;
@@ -1041,6 +995,7 @@ function changeVolumeRight() {
 }
 
 function xFade() {
+    // FUNCTIONALITY FOR THE X-FADER
     var xFadeValue = (document.querySelector("#xFader").value-50) / 50.0;
     //console.log(xFadeValue);
     var leftVal = Math.sqrt(0.5 * (1 - xFadeValue));
@@ -1063,19 +1018,21 @@ document.querySelector("#xFader").addEventListener("change", xFade);
 // document.querySelector("#VolSliderR").addEventListener("input", changeVolumeRight);
 document.querySelector("#xFader").addEventListener("input", xFade);
 
+// FUNCTIONALITY FOR UPLOADING TO LEFT DECK
 var leftDeckUpload = document.querySelector("#leftDeckUpload");
 leftDeckUpload.addEventListener("change", function() {
     if (leftDeckUpload.files.length > 0) {
-        clearGraphLeft();
+        clearGraph(wsLeft)
         var track = leftDeckUpload.files[0];
         loadBlobToDeck(wsLeft, track);
     }
 });
 
+// FUNCTIONALITY FOR UPLOADING TO RIGHT DECK
 var rightDeckUpload = document.querySelector("#rightDeckUpload");
 rightDeckUpload.addEventListener("change", function() {
     if (rightDeckUpload.files.length > 0) {
-        clearGraphRight();
+        clearGraph(wsRight);
         var track = rightDeckUpload.files[0];
         loadBlobToDeck(wsRight, track);
     }
@@ -1106,6 +1063,7 @@ var fTIMEOUT = function() {
         };
     }, 2000, playlist);
 };
+
 autoMixUpload.addEventListener("change", function() {
     console.log("AUTOMIXUPLOAD");
     // $(".startButton").each(function(idx, obj) {obj.disabled = true;});
@@ -1142,29 +1100,21 @@ function playMix() {
 }
 
 
-function setLoadBtnText (ws, text) {
+function setLoadBtnText(ws, text) {
+    
     var currentUploader = $(ws.HTMLtable).find('.custom-file-input')[0];
     var rule = '#' + currentUploader.id + '::before' + " {"  + 'content: "' + text + '"}';
     document.styleSheets[4].insertRule(rule, document.styleSheets[4].cssRules.length);
 }
 
 
-function clearGraphLeft() {
-    wsLeft.RMS_array = [];
-    var canvas = document.querySelector("#graphLeft")
-    canvas.width = canvas.width
-}
+
 
 function clearGraph(ws) {
     ws.RMS_array = [];
     ws.RMSgraph.width = ws.RMSgraph.width
 }
 
-function clearGraphRight() {
-    wsRight.RMS_array = [];
-    var canvas = document.querySelector("#graphRight")
-    canvas.width = canvas.width
-}
 
 
 
@@ -1223,120 +1173,6 @@ function drawGraph(ws, canvas) {
 
 
 
-
-
-/*
-function playSample() {
-    // FUNCTION TO PLAY A SAMPLE FROM THE TRACK (for testing)
-    
-    // Stereo
-    var channels = 2;
-
-    var frameCount = wavesurfer.backend.ac.sampleRate * 5.0;
-    console.log(frameCount)
-    
-    var myArrayBuffer = wavesurfer.backend.ac.createBuffer(channels, frameCount, wavesurfer.backend.ac.sampleRate);
-    console.log(myArrayBuffer)
-    // console.log(floatArray)
-    
-    var rms = 0;
-    
-    // Get a sample from the middle of the track
-    for (var ch = 0; ch < channels; ch++) {
-        var nowBuffering = myArrayBuffer.getChannelData(ch);
-        // var ca = new Float32Array;
-        var c = wavesurfer.backend.source.buffer.getChannelData(ch);
-        // var n = dataArray.getChannelData(ch);
-        j = 44100 * Math.floor(wavesurfer.backend.source.buffer.duration/2)
-        for (var i=0; i < frameCount; i++) {
-            nowBuffering[i] = c[i + 3748500]
-            // nowBuffering[i] = c[i+ j]
-            
-            rms += nowBuffering[i] * nowBuffering[i]
-            
-            if (i % 1000000 == 0) {
-                console.log(i, rms)
-            }
-        }
-        rms /= nowBuffering.length;
-        rms = Math.sqrt(rms);
-    }
-    // 20*Math.log10(Math.abs(0.5))
-    console.log("RMS ", rms, 20*Math.log10(Math.abs(rms)))
-    
-    
-    // Calculate the RMS of each 5 second interval
-    var rms2 = 0;
-    var n = 0;
-    var c = wavesurfer.backend.source.buffer.getChannelData(0);
-
-    for (var i=0; i < wavesurfer.backend.source.buffer.length; i++) {
-        rms2 += c[i] * c[i]
-        if (i % (44100 * rms_step) == 0) {
-            rms2 /= nowBuffering.length;
-            rms2 = Math.sqrt(rms2);
-            console.log("RMS2 ", n, i, 20*Math.log10(Math.abs(rms2)))
-            RMS_Array.push( [i / 44100, 20*Math.log10(Math.abs(rms2))] )
-            rms2 = 0
-            n++
-        }
-    }
-    
-    // Get an AudioBufferSourceNode.
-    // This is the AudioNode to use when we want to play an AudioBuffer
-    var source = wavesurfer.backend.ac.createBufferSource();
-    // set the buffer in the AudioBufferSourceNode
-    source.buffer = myArrayBuffer;
-    // connect the AudioBufferSourceNode to the
-    // destination so we can hear the sound
-    source.connect(gainNode);
-    // start the source playing
-    source.start();
-    drawGraph()
-
-}
-*/
-
-/*
-// MY ATTEMPT TO EXTRACT AUDIO DATA FROM AN EXTERNAL URL
-// DOESN'T WORK(?)
-function getData() {
-  source = audioCtx.createBufferSource();
-  request = new XMLHttpRequest();
-
-  request.open('GET', 'http://localhost/~JRap/AudioProject/sax.mp3', true);
-
-  request.responseType = 'arraybuffer';
-
-
-  request.onload = function() {
-    var audioData = request.response;
-
-    audioCtx.decodeAudioData(audioData, function(buffer) {
-        myBuffer = buffer;
-        songLength = buffer.duration;
-        source.buffer = myBuffer;
-        source.playbackRate.value = 1.0
-        //source.playbackRate.value = playbackControl.value;
-        source.connect(audioCtx.destination);
-        //source.loop = true;
-
-        // loopstartControl.setAttribute('max', Math.floor(songLength));
-        // loopendControl.setAttribute('max', Math.floor(songLength));
-      },
-
-      function(e){"Error with decoding audio data" + e.err});
-
-  }
-
-  request.send();
-}
-*/
-
-
-
-
-
 /* ************* */
 
 // SPOTIFY AUTHENTICATION - WORKING BUT UNNECESSARY FOR NOW
@@ -1388,8 +1224,8 @@ $(function() {
 */
 
 
-
 function getToken() {
+    // GET THE LOGIN TOKEN FROM THE URL
     var h = window.location.hash
     console.log("HASH!")
     console.log(h)
@@ -1399,42 +1235,19 @@ function getToken() {
     }
 }
 
-
-/*
-function getSpotifyBPMLeft() {
-    $.ajax({
-        url: 'https://api.spotify.com/v1/me',
-        headers: {
-          'Authorization': 'Bearer ' + access_token
-        },
-        success: function(response) {
-}
-*/
+/********************/
 
 
 // ********************************************** //
 // BPM DETECTION
 
-/* TO TEST THE BPM OF A TRACK, LOAD THE PAGE, AND TYPE 'getBPM(X)'
-INTO THE CONSOLE, WHERE X = FILE1/FILE2/ETC. */
+
 
 /*
-
-Hoodboi_By_Ur_Side: 140,                :)
-Wave_Racer_Streamers: 140,              X (132.5, 131, 129.5, 140)
-Wave_Racer_Flash_Drive: 134,     
-Giraffage_Be_With_You: 140,             :)
-Hi_Tom_Summer_Plants: 142,              :)
-Bear_Face_Taste_My_Sad: 142,     
-LWiz_Girl_From_Codeine_City: 141,
-Village_Dive: 140 ,
-OZZIE_YOUSHOULDKNOW: 140                X (93.5, 140])
-
 PARAMETERS:
 - THRESHOLD         [0.9]
 - NEIGHBORRANGE     [25]
 - ROUNDING          [100]
-
 */
 
 var threshold;
@@ -1447,12 +1260,11 @@ function getPeaksAtThreshold(ws) {
     var data1 = ws.ws.backend.buffer.getChannelData(0);
     var data2 = ws.ws.backend.buffer.getChannelData(1);
     
-    
-    threshold = 0.99;
-    // var threshold = 0.95;
-    
+    // SET THE THRESHOLD VERY HIGH
+    threshold = 0.99;    
     
     do {
+        // TRY TO GET THE PEAKS; IF THERE AREN'T ENOUGH, LOWER THE THRESHOLD
         var peaksArray = [];
         
         for(var i = 0; i < data1.length; i++) {
@@ -1554,6 +1366,7 @@ function intervalToBPM(interval, samplerate) {
 }
 
 function BPMToInterval(BPM, samplerate) {
+    // CONVERT A BPM TO THE INTERVAL BETWEEN BEATS
     return (60 * samplerate) / BPM
 }
 
@@ -1671,6 +1484,7 @@ function compareResults(correctAnswerArr) {
 
 
 function getLastSegment(ws) {
+    // FIND THE LAST SEGMENT POINT AT LEAST 8 BARS BEFORE THE END
     var bar32 = ws.realInterval * 32;
     var last = ws.ws.backend.buffer.length - bar32;
     console.log(last);
@@ -1683,6 +1497,7 @@ function getLastSegment(ws) {
 }
 
 function getFirstSegment(ws) {
+    // FIND THE FIRST SEGMENT POINT AT LEAST 8 BARS AFTER THE BEGINNING
     var bar32 = ws.realInterval * 32;
     var first = bar32;
     console.log(first);
@@ -1727,15 +1542,7 @@ function getBeatArray(ws) {
     var c = ws.ws.backend.buffer.getChannelData(0);
     topScore = 0;
     var m = 0;
-    
-    /*
-    $('#show').text(
-                            'I am getting refreshed every 3 seconds..! Random Number ==> '
-                                    + randomnumber);
-                                    */
-    
-    // for (var i = 0; i < (60/ws.BPM)*44100; i++) {
-        // $('body').hide().show(0);
+
     counter = 0;
     var SI = setInterval(function(ws, interval) {
         // console.log("IT IS I ", counter);
@@ -1983,6 +1790,8 @@ function getBeatArrayTIMEOUT(ws) {
 }
 
 function findDistanceToNearestInArray(int, arr) {
+    // GIVEN AN ARRAY, FIND THE DIFFERENCE BETWEEN THE INT AND
+    // THE MEMBER OF THE ARRAY THAT IS CLOSEST TO IT
     var lower = arr.filter(function(a) {return a < int}).slice(-1)[0];
     var higher = arr.filter(function(a) {return a > int})[0];
     // console.log(lower, higher);
@@ -2183,16 +1992,8 @@ function groupByConsecutiveIntegers(arr) {
     return result;
 }
 
-/*
-function getSegments(ws) {
-    return findSegments(getDifferences(ws.RMSAverages));
-}
-*/
 
-// WORKING WELL:
-// "static/EpicHouse/Ultra Nate - Free (Teo Moss & Danie Shems Remix)_www.dj-case.com.mp3"
-// "static/EpicHouse/Zoe Badwi - Release Me (Niels Van Gogh Remix)_www.dj-case.com.mp3"
-// "static/EpicHouse/Tv Rock ft Rudy - In The Air (Axwell Remix)_www.dj-case.com.mp3"
+
 // var loudestSeg = 0;
 // var segVolArray = [];
 function findSegments(ws) {
@@ -2342,6 +2143,7 @@ function hiBeats(ws, bpm) {
 
 
 function goToBeat(ws, n) {
+    // SEEK-AND-CENTER TO THE GIVEN BEAT IN THE TRACK
     ws.ws.seekAndCenter(ws.realBeatGrid[n] / ws.ws.backend.buffer.length);
 }
 
