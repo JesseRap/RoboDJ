@@ -4,14 +4,16 @@ var peakArray;
 var interval;
 
 self.addEventListener('message', function(e) {
-    self.postMessage("Got the data ABCDEF");
-    self.postMessage("Another message");
-    self.postMessage(e.data);
+    console.log("Got the data ABCDEF");
+    // self.postMessage("Another message");
+    console.log(e.data);
     c = e.data[0];
     BPM = e.data[1];
     peakArray = e.data[2];
     interval = ((60 * 44100) / BPM);
+    console.log("WORKER INTERVAL IS ", interval);
     self.postMessage(helper());
+    self.close();
 })
 
 
@@ -25,41 +27,34 @@ var counter = 0;
 function helper() {
     for (var q = 0; q < interval; q++) {
 
-        /*
-        var progress = Math.round( (counter / ((60/ws.BPM)*44100)) * 100);
-        // console.log("HM", i / (((60/ws.BPM)*44100) * 100));
-        var progressMeter = (ws === wsLeft)? $(".progressMeter")[0] : $(".progressMeter")[1];
-        $(progressMeter).css('visibility', 'visible');
-        if (counter % 100 === 0) {
-            console.log(counter, (60/ws.BPM)*44100, progress);
-            progressMeter.innerHTML = "LOADING : " + progress.toString() + "%";
-        };
-        */
-        // $($(".progressMeter")[0]).parent()[0].hide().show(0);
-        // $($(progressMeter).parent()[0]).hide().show(0);
-        // $($(".progressMeter")[0]).hide().show(0)
-
-            // console.log("SET TIMEOUT THINGY", i);
+        
         // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
-        if (q%1000 === 0) {
+        if (q%100 === 0) {
             console.log("WORKER ", q);
         }
         var score = 0;
         var n = 0;
         temp = [];
-        for (var j = q; j < c.length / 4; j += interval) {
+        peakArrayDict = {};
+        peakArray.forEach(function(obj) {peakArrayDict[obj] = true});
+        var j, k;
+        // console.log("A ", Date.now())
+        for (j = q; j < c.length / 4; j += interval) {
             // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
             //score += c[Math.round(j)];
             // score += findDistanceToNearestInArray(Math.round(j), peakArray)
-            for (var k = -10; k <= 10; k++) {
-                if (peakArray.indexOf(j+k) > -1) {
+            for (k = -5; k <= 5; k++) {
+                // if (peakArray.indexOf(j+k) > -1) {
+                if (peakArrayDict[j+k] === true) {
                     score++;
                     break;
                 }
             }
-            temp.push(Math.round(j));
+            // temp.push(Math.round(j));
+            temp.push(j);
             n++;
-        }
+        };
+        // console.log("B ", Date.now());
         score /= n;
         /*
         score = temp.filter(function(obj) {
@@ -73,9 +68,17 @@ function helper() {
         if (score > topScore) {
             console.log("NEW TOPSCORE");
             console.log("score", topScore, score, temp, n, m);
+            temp = temp.map(Math.round);
             topScore = score;
             result = temp;
         };
+        // console.log("C ", Date.now());
     };
-    return [result, "I'M DONE!!!!!!!"];
+    var temp2 = [];
+    for (var j = result[0]; j < c.length; j += interval) {
+        temp2.push(Math.round(j));
+    };
+    result = temp2;
+    console.log("I'M DONE!!!!!!")
+    return result;
 };

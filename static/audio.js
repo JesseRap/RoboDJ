@@ -821,6 +821,7 @@ function isReady(ws) {
     // HELPER FUNCTION FOR DECK-IS-READY
     // var context = ws.backend.ac
     console.log(ws)
+    ws.analysisDone = false;
     //console.log(context)
     /*
     // CONNECT GAIN NODE
@@ -856,7 +857,7 @@ function isReady(ws) {
     
     
     getBPM(ws);
-    getBeatArray(ws);
+    getBeatArrayWorker(ws);
     var s = setInterval(function() {
         // console.log("SETINTERVAL THING", ws.analysisDone);
         if (ws.analysisDone) {
@@ -1516,6 +1517,50 @@ var topScore;
 var temp = [];
 var counter = 0;
 var peakArray;
+function getBeatArrayWorker(ws) {
+    // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
+    
+    console.log("GET BEAT ARRAY")
+    
+    // FIND MAXIMUM ZOOM
+    var zoom = 0;
+    ws.ws.zoom(0);
+    // CANVAS APPARENTLY CANNOT EXCEED ~32400
+    // KEEP ZOOMING UNTIL LIMIT IS REACHED
+    while (ws.waveformCanvas.width < 32400) {
+        ws.ws.zoom(zoom);
+        zoom++;
+    }
+    ws.ws.zoom(zoom-2);
+    
+    
+    ws.peakArray = getPeaksAtThreshold(ws);
+    peakArray = ws.peakArray.filter(function(a) {return a < ws.ws.backend.buffer.length/4});
+    // var peakArray = ws.peakArray.slice(0,Math.floor(ws.peakArray.length/2));
+    // peakArray = peakArray.slice(Math.floor(peakArray.length/2), Math.floor(peakArray.length/2 + peakArray.length/10));
+
+    var interval = BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
+    ws.realInterval = interval;
+    console.log(interval);
+    
+    var result = [];
+    var c = ws.ws.backend.buffer.getChannelData(0);
+    
+    var worker = new Worker("static/work.js");
+    worker.postMessage([c, ws.BPM, ws.peakArray]);
+
+    worker.addEventListener('message', function(e) {
+        ws.realBeatGrid = e.data;
+        console.log(e.data);
+        ws.analysisDone = true;
+        console.log(getAverageRMS(ws));
+        ws.realFirstPeak = temp[0];
+        drawStuff(ws);
+    }, false);
+    
+    // return result;
+}
+
 function getBeatArray(ws) {
     // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
     
@@ -1539,6 +1584,7 @@ function getBeatArray(ws) {
     // peakArray = peakArray.slice(Math.floor(peakArray.length/2), Math.floor(peakArray.length/2 + peakArray.length/10));
 
     var interval = BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
+    console.log("MAIN THREAD INTERVAL IS ", interval);
     console.log(interval);
     
     var result = [];
@@ -1548,7 +1594,9 @@ function getBeatArray(ws) {
     worker.postMessage([c, ws.BPM, ws.peakArray]);
     worker.addEventListener('message', function(e) {
         console.log(e.data);
+        ws.analysisDone = true;
     }, false);
+
     
     topScore = 0;
     var m = 0;
@@ -1666,7 +1714,134 @@ function getBeatArray(ws) {
         }
     
     },50, ws, interval);
+    
     // return result;
+}
+
+function getBeatArrayX(ws) {
+    // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
+    
+    console.log("GET BEAT ARRAY")
+    
+    // FIND MAXIMUM ZOOM
+    var zoom = 0;
+    ws.ws.zoom(0);
+    // CANVAS APPARENTLY CANNOT EXCEED ~32400
+    // KEEP ZOOMING UNTIL LIMIT IS REACHED
+    while (ws.waveformCanvas.width < 32400) {
+        ws.ws.zoom(zoom);
+        zoom++;
+    }
+    ws.ws.zoom(zoom-2);
+    
+    
+    ws.peakArray = getPeaksAtThreshold(ws);
+    peakArray = ws.peakArray.filter(function(a) {return a < ws.ws.backend.buffer.length/4});
+    // var peakArray = ws.peakArray.slice(0,Math.floor(ws.peakArray.length/2));
+    // peakArray = peakArray.slice(Math.floor(peakArray.length/2), Math.floor(peakArray.length/2 + peakArray.length/10));
+
+    var interval = BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
+    console.log("MAIN THREAD INTERVAL IS ", interval);
+    console.log(interval);
+    
+    var result = [];
+    var c = ws.ws.backend.buffer.getChannelData(0);
+    
+    var worker = new Worker("static/work.js");
+    worker.postMessage([c, ws.BPM, ws.peakArray]);
+    worker.addEventListener('message', function(e) {
+        console.log(e.data);
+        ws.analysisDone = true;
+    }, false);
+
+    
+    topScore = 0;
+    var m = 0;
+
+    counter = 0;
+    for (var q = 0; q < interval; q++) {
+
+        
+        // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
+        if (q%100 === 0) {
+            console.log("WORKER ", q);
+        }
+        var score = 0;
+        var n = 0;
+        temp = [];
+        for (var j = q; j < c.length / 4; j += interval) {
+            // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
+            //score += c[Math.round(j)];
+            // score += findDistanceToNearestInArray(Math.round(j), peakArray)
+            for (var k = -10; k <= 10; k++) {
+                if (peakArray.indexOf(j+k) > -1) {
+                    score++;
+                    break;
+                }
+            }
+            temp.push(Math.round(j));
+            n++;
+        }
+        score /= n;
+        /*
+        score = temp.filter(function(obj) {
+            for (var k = -100; k < 100;) {
+                if (peakArray.indexOf(obj+k) > -1) {
+                    return obj
+                }
+            }
+        }).length;
+        */
+        if (score > topScore) {
+            console.log("NEW TOPSCORE");
+            console.log("score", topScore, score, temp, n, m);
+            topScore = score;
+            result = temp;
+        };
+    };
+    var temp2 = [];
+    for (var j = result[0]; j < c.length; j += interval) {
+        temp2.push(Math.round(j));
+    };
+    result = temp2;
+    console.log("I'M DONE!!!!!!")
+    return result;
+
+
+    
+    // return result;
+}
+
+function drawStuff(ws) {
+    var ctx = ws.waveformCtx;
+    ctx.beginPath();
+    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
+    for (var i=0; i< ws.peakArray.length; i++) {
+        var x = ws.peakArray[i];
+        var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
+        // console.log(i,peaksArray[i],i*scale);
+        ctx.moveTo(y, 0);
+        ctx.lineTo(y, ws.waveformCanvas.height);
+        // Round the interval
+        // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
+    }
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#fff";
+    ctx.stroke();
+
+    ctx.beginPath();
+    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
+    for (var i=0; i< ws.realBeatGrid.length; i++) {
+        var x = ws.realBeatGrid[i];
+        var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
+        // console.log(i,peaksArray[i],i*scale);
+        ctx.moveTo(y, 0);
+        ctx.lineTo(y, ws.waveformCanvas.height);
+        // Round the interval
+        // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
+    }
+    ctx.strokeStyle = "#000";
+    ctx.stroke();
 }
 
 function getBeatArrayTIMEOUT(ws) {
@@ -1751,7 +1926,7 @@ function getBeatArrayTIMEOUT(ws) {
     result = temp2;
     ws.realBeatGrid = result;
     ws.realInterval = interval;
-    ws.realFirstPeak = temp[0];
+    ws.realFirstPeak = result[0];
     
     var ctx = ws.waveformCtx
     ctx.beginPath();
