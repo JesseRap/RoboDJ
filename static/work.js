@@ -27,25 +27,28 @@ var counter = 0;
 function helper() {
     for (var q = 0; q < interval; q++) {
 
-        
+        var score;
         // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
         if (q%100 === 0) {
             console.log("WORKER ", q);
+            console.log(score);
         }
         var score = 0;
         var n = 0;
-        temp = [];
-        peakArrayDict = {};
+        var result;
+        var temp = [];
+        var peakArrayDict = {};
         peakArray.forEach(function(obj) {peakArrayDict[obj] = true});
         var j, k;
         // console.log("A ", Date.now())
-        for (j = q; j < c.length / 4; j += interval) {
+        for (j = q; j < c.length; j += interval) {
             // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
             //score += c[Math.round(j)];
             // score += findDistanceToNearestInArray(Math.round(j), peakArray)
-            for (k = -5; k <= 5; k++) {
+            var sizeOfBucket = 50;
+            for (k = Math.floor(sizeOfBucket * -0.5); k <= Math.floor(sizeOfBucket * 0.5); k++) {
                 // if (peakArray.indexOf(j+k) > -1) {
-                if (peakArrayDict[j+k] === true) {
+                if (peakArrayDict[Math.round(j+k)] === true) {
                     score++;
                     break;
                 }

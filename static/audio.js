@@ -3,7 +3,7 @@
 var masterTempo = 140;
 var knobArray = [];
 var autoDJ = 0;
-var drawPeaks = false;
+var drawPeaks = true;
 
 
 $(function() {
@@ -155,13 +155,14 @@ function autoHPHelper(fromWS, toWS) {
     
 }
 
+var nSteps1, nSteps2, nSteps3;
 function autoHPSweepDown(ws, duration) {
     // AUTOMATE AN HP SWEEP DOWN
     
     console.log("AUTOHPSWEEPDOWN", ws.onFilterArray);
     ws.HP.frequency.value = 10000;
     
-    nSteps3 = 1000;
+    var nSteps3 = 1000;
     var stepTime = duration / nSteps3;
     
     var currentVal3 = 10000;
@@ -647,11 +648,9 @@ function setupAudioNodes(ws) {
     var counter = 0
     ws.javascriptNode.onaudioprocess = function() {
         // THIS PROCESS RUNS JAVASCRIPT ON THE STREAMING AUDIO
-        // console.log("now processing", ws.ws.getCurrentTime());
         counter += 1
-        // console.log(counter);
         var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
-        if ( (ws.realBeatGrid[ws.lastSeg] - (ws.ws.getCurrentTime() * 44100)) < ws.realInterval && !ws.hasTransitioned && wsOther.isLoaded) {
+        if ( (ws.realBeatGrid[ws.lastSeg] - (ws.ws.getCurrentTime() * 44100)) < ws.realInterval && !ws.hasTransitioned && wsOther.isLoaded && wsOther.isRunning == false) {
             // IF THE CURRENT TIME IS LESS THAN AN INTERVAL AWAY FROM THE 
             // LAST SEG, START THE TRANSITION
             
@@ -661,16 +660,6 @@ function setupAudioNodes(ws) {
             if (autoDJ) {
                 doTransition(ws, wsOther, (60 / ws.BPM) * 112000);
             };
-            // ws.hasTransitioned = true;
-            
-            console.log("WILL XFADE TO 50 in ", (60 / ws.BPM) * 32000)
-            // autoXFadeHelper(ws, wsOther);
-            /*
-            autoXFade(50, (60 / ws.BPM) * 32000);
-            var t;
-            (ws === wsLeft)? t = 100 : t = 0;
-            setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / ws.BPM) * 48000); autoXFade(t, (60 / ws.BPM) * 32000)}, (60 / ws.BPM) * 48000);
-            */
         }
         
  
@@ -706,6 +695,7 @@ function setupAudioNodes(ws) {
         var shadowSize = 10;
         var secondParam = "0 0 "+shadowSize.toString()+"px "+shadowSize.toString()+"px rgba(81, 203, 238, 1)";
         // console.log(average, shadowSize, secondParam);
+        /*
         if (ws.isRunning) {
             if (counter % 1 == 0) {
                 // console.log("COUNTER ", counter, secondParam);
@@ -715,6 +705,7 @@ function setupAudioNodes(ws) {
             // $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", "0px 0px 0px 0px #fff")
             $($(wsLeft.HTMLtable).parents("div")[1]).removeAttr('style');
         }
+        */
         
         
     };
@@ -1018,7 +1009,7 @@ leftDeckUpload.addEventListener("change", function() {
 var rightDeckUpload = document.querySelector("#rightDeckUpload");
 rightDeckUpload.addEventListener("change", function() {
     if (rightDeckUpload.files.length > 0) {
-        clearGraph(wsRight);
+        // clearGraph(wsRight);
         var track = rightDeckUpload.files[0];
         loadBlobToDeck(wsRight, track);
     }
@@ -1341,6 +1332,7 @@ function getBeatArrayWorker(ws) {
 
 function drawStuff(ws) {
     var ctx = ws.waveformCtx;
+    //ctx.clearRect(0, 0, ctx.width, ctx.height);
     ctx.beginPath();
     //var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
     if (drawPeaks) {
