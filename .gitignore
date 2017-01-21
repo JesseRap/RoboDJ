@@ -8,3 +8,4 @@ node_modules
 *.scss
 *.scssc
 *.DS_Store
+static/ignore/*

@@ -24,6 +24,7 @@ app.get('/', (request, response) => {
     audio: 'static/audio.js',
     tests: 'static/tests.js',
     worker: 'static/work.js',
+    analyzer: 'static/analysisModule.js',
     deckIDs: deckIDs
   })
 })
