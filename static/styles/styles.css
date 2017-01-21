@@ -1,7 +1,6 @@
-
-
 body {
-    background-color: black
+    background-color: black;
+    background-image: url("../images/Space.jpg");
 }
 
 .jumbotron {
@@ -25,8 +24,14 @@ body {
   text-shadow: 1px 1px #fff;
   font-weight: 700;
   font-size: 10pt;
-    width: 265px;
-    text-align: center;
+  width: 265px;
+  text-align: center;
+  
+}
+
+.playlist-custom-input::before {
+    font-size: 14pt;
+    height: 30px;
 }
 
 .custom-file-input::before {
@@ -145,7 +150,7 @@ body {
 
 
 #leftPlayer, #rightPlayer {
-    background-image: url('black_wood_3.jpg');
+    background-image: url('../images/black_wood_3.jpg');
     background-size: contain;
     min-width: 350px;
     display: inline-block;
@@ -234,7 +239,7 @@ h1 {
 .startButton {
     height: 75px;
     width: 100px;
-    background-image: url(start-stop-button.jpg);
+    background-image: url(../images/start-stop-button.jpg);
     background-size: cover;
     margin-top: 20px;
     margin-bottom: 20px;
@@ -256,12 +261,12 @@ wave > canvas {
 }
 
 .rewind {
-    background-image: url(rewind-button.png);
+    background-image: url(../images/rewind-button.png);
     left: 10px;
 }
 
 .FF {
-    background-image: url(FF-button.png);
+    background-image: url(../images/FF-button.png);
     right: 10px;
 }
 
@@ -326,3 +331,4 @@ wave > canvas {
     transform: translateX(-60px);
     top: 35%;
 }
+

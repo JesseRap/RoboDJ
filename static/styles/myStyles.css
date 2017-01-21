@@ -1,7 +1,7 @@
 .myJumbotron {
   background-color: blue;
   position: relative;
-  width: 95%;
+  width: 50%;
   height: 100px;
   margin: auto;
   min-width: 230px;
@@ -11,7 +11,8 @@
 .myContainer {
   text-align: center;
   position: relative;
-  min-width: 230px; }
+  min-width: 230px; 
+}
 
 h1 {
   line-height: 100px;

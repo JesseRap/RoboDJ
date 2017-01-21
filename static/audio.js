@@ -1,7 +1,10 @@
-var hash;
-var token = null;
+'use strict'
+
 var masterTempo = 140;
 var knobArray = [];
+var autoDJ = 0;
+var drawPeaks = false;
+
 
 $(function() {
     console.log(wsArray.length);
@@ -34,15 +37,16 @@ $(function() {
 
 // CALL THE XFADE() FUNCTION ON CHANGING SLIDER VALUE
 $("#xFader").on('change', function(){xFade()});
-// STYLE X-FADER
+
+// STYLE KNOBS
 $(function() {
     $(".slider").each(function(idx, el) {el.style['width']= "400px"; el.style["marginTop"] = "2px"})
-    
 });
+
 
 // SET THE BACKGROUND COLOR OF THE EQ METERS
 $(function(){
-    for (i in wsArray) {
+    for (var i in wsArray) {
         var ws = wsArray[i];
         $($(ws.HTMLtable).find('canvas')[7]).css('background-color', 'black');
         $($(ws.HTMLtable).find('canvas')[5]).css('background-color', 'black');
@@ -55,9 +59,11 @@ function autoXFadeHelper(fromWS, toWS) {
     // AUTOMATES AN X-FADE FROM ONE DECK TO THE OTHER
     autoXFade(50, (60 / masterTempo) * 32000);
     // GET THE TARGET LOCATION
+    // LEFT DECK = 0; RIGHT DECK = 100
     var t;
     (toWS === wsRight)? t = 100 : t = 0;
     
+    // SET A TIMEOUT CALL TO AUTOXFADE
     setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / masterTempo) * 48000); autoXFade(t, (60 / masterTempo) * 32000)}, (60 / masterTempo) * 48000);
 }
 
@@ -66,10 +72,12 @@ function autoXFade(target, duration) {
     // AUTOMATE X-FADE TO THE TARGET POSITION (0-100) IN THE DURATION
     
     // THE NUMBER OF STEPS FOR THE TRANSITION
-    nSteps1 = 1000;
+    var nSteps1 = 1000;
     // GET THE CURRENT VALUE
     var currentVal = xFader.slider('getValue');
-    step1 = (target - currentVal) / nSteps1;
+    // DETERMINE THE LENGTH OF EACH STEP
+    var step1 = (target - currentVal) / nSteps1;
+    // DETERMINE THE DURATION OF EACH STEP
     var stepTime = duration / nSteps1;
     
     for (var i = 0; i < nSteps1; i++) {
@@ -111,7 +119,7 @@ function autoLPSweepUp(ws, duration) {
     console.log(ws.onFilterArray);
     ws.LP.frequency.value = 0;
     
-    nSteps2 = 1000;
+    var nSteps2 = 1000;
     var stepTime = duration / nSteps2;
     
     var currentVal2 = 0;
@@ -122,11 +130,8 @@ function autoLPSweepUp(ws, duration) {
         // AT EACH STEP, INCREMENT THE LP CUTOFF BY THE CORRECT AMOUNT
         setTimeout(function() {
             currentVal2 = currentVal2 + (2000 / nSteps2);
-            // console.log(i, currentVal, stepTime);
             ws.LP.frequency.value = currentVal2;
             knobArray[wsArray.indexOf(ws)].val(currentVal2);
-            // $(".LPdial")[wsArray.indexOf(ws)].value = currentVal.toString();
-
         }, stepTime * i);
     };
 };
@@ -256,7 +261,7 @@ var hiddenWS = WaveSurfer.create({
     scrollParent: true
 });
 
-hiddenWS.load("static/metronome.wav");
+hiddenWS.load("static/audio/metronome.wav");
 
 
 
@@ -299,10 +304,10 @@ function getPreviousHighestInArray(arr, int) {
 function playPause(ws) {
     // FUNCTIONALITY FOR THE PLAY/PAUSE BUTTON
     console.log("PLAYPAUSE");
+    // wsOther IS THE OTHER WS THAT WAS NOT CLICKED
     var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
-    console.log(wsOther);
     var currentPlayer = $(ws.HTMLtable).parents('div')[1];
-    console.log(currentPlayer);
+    
     if (ws.isLoaded) {
         // IF THE WS HAS LOADED A TRACK...
         console.log("ISLOADED");
@@ -318,6 +323,7 @@ function playPause(ws) {
             // RESET THE CSS FOR THE DECK
             $(ws.HTMLtable).parents('div')[1].className = "column2";
         } else {
+            // IF THE DECK IS NOT RUNNING, START IT
             if (wsOther.isRunning) {
                 // IF THE OTHER DECK IS RUNNING, START THIS DECK IN SYNC
                 beatMaster = ws;
@@ -388,17 +394,23 @@ function toggleLP(ws) {
     console.log("toggleLP");
     console.log(ws.onFilterArray);
     if (ws.onFilterArray.indexOf(ws.LP) > -1) {
+        // IF THE LP IS ON, TURN IT OFF
         console.log("turn LP off");
-        // ws.filters = ws.filters.filter(function(a) {return a!==ws.LP});        
+        // REMOVE THE LP FROM THE ONFILTER ARRAY
         ws.onFilterArray = ws.onFilterArray.filter(function(a) {return a !== ws.LP});
+        // UPDATE THE ACTIVE FILTERS
         ws.ws.backend.setFilters(ws.onFilterArray);
+        // UPDATE THE LP CSS
         ws.LPbutton.className = "filter buttonDeselected";
     } else {
+        // ELSE IF IT'S OFF, TURN IT ON
         console.log("turn LP on")
+        // ADD THE LP TO THE ONFILTERARRAY
         ws.onFilterArray.push(ws.LP);
         console.log(ws.LP,ws.gainNode,ws.ws.backend);
-        // ws.filters.push(ws.LP);
+        // UPDATE THE ACTIVE FILTERS
         ws.ws.backend.setFilters(ws.onFilterArray);
+        // UPDATE THE LP CSS
         ws.LPbutton.className = "filter buttonSelected";
     }
 }
@@ -408,14 +420,19 @@ function toggleBP(ws) {
     console.log("toggleBP");
     console.log(ws.onFilterArray);
     if (ws.onFilterArray.indexOf(ws.BP) > -1) {
+        // IF THE BP IS ON, TURN IT OFF
         console.log("turn BP off");
+        // REMOVE THE BP FROM THE ONFILTERARRAY
         ws.onFilterArray = ws.onFilterArray.filter(function(a) {return a !== ws.BP});
         ws.ws.backend.setFilters(ws.onFilterArray);
         ws.BPbutton.className = "filter buttonDeselected";
     } else {
+        // ELSE IF THE BP IS OFF, TURN IT ON
         console.log("turn BP on")
+        // ADD THE BP TO THE ONFILTERARRAY
         ws.onFilterArray.push(ws.BP);
         console.log(ws.BP,ws.gainNode,ws.ws.backend);
+        // UPDATE THE ACTIVE FILTERS
         ws.ws.backend.setFilters(ws.onFilterArray);
         ws.BPbutton.className = "filter buttonSelected";
     }
@@ -518,6 +535,8 @@ function stop(ws) {
 }
 
 
+// ***** CREATE THE WAVESURFER INSTANCES *****
+
 // CREATE LEFT DECK WAVESURFER INSTANCE
 var wavesurferLeft = WaveSurfer.create({
     container: '#waveformL',
@@ -595,14 +614,13 @@ function setupAudioNodes(ws) {
     
     ws.volCanvasL = $(ws.HTMLtable).find('.volMeter')[0];
     ws.volCanvasR = $(ws.HTMLtable).find('.volMeter')[1];
-    // console.log(ws.volCanvasL);
+
     ws.volCtxL = ws.volCanvasL.getContext('2d');
     ws.volCtxR = ws.volCanvasR.getContext('2d');
-    // ws.volCtx.clearRect(0, 0, 60, 130);
     
  
     // setup a javascript node
-    ws.javascriptNode = ws.context.createScriptProcessor(2048, 1, 1);
+    ws.javascriptNode = ws.context.createScriptProcessor(512, 1, 1);
     // connect to destination, else it isn't called
     ws.javascriptNode.connect(ws.context.destination);
 
@@ -626,15 +644,23 @@ function setupAudioNodes(ws) {
     // console.log(ws.volCanvas.height, ws.volCanvas.width);
     getLastSegment(ws);
     ws.hasTransitioned = false;
+    var counter = 0
     ws.javascriptNode.onaudioprocess = function() {
+        // THIS PROCESS RUNS JAVASCRIPT ON THE STREAMING AUDIO
         // console.log("now processing", ws.ws.getCurrentTime());
+        counter += 1
+        // console.log(counter);
         var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
         if ( (ws.realBeatGrid[ws.lastSeg] - (ws.ws.getCurrentTime() * 44100)) < ws.realInterval && !ws.hasTransitioned && wsOther.isLoaded) {
             // IF THE CURRENT TIME IS LESS THAN AN INTERVAL AWAY FROM THE 
             // LAST SEG, START THE TRANSITION
             
             playPause(wsOther);
-            doTransition(ws, wsOther, (60 / ws.BPM) * 112000);
+            
+            // DO A RANDOMLY SELECTED TRANSITION IF AUTO-DJ SELECTED (DEFAULT OFF)
+            if (autoDJ) {
+                doTransition(ws, wsOther, (60 / ws.BPM) * 112000);
+            };
             // ws.hasTransitioned = true;
             
             console.log("WILL XFADE TO 50 in ", (60 / ws.BPM) * 32000)
@@ -653,7 +679,7 @@ function setupAudioNodes(ws) {
         ws.analyser.getByteFrequencyData(array);
         
         var average = getAverageVolume(array);
-        // console.log(average);
+        // console.log('AVERAGE ', average);
         
         // clear the current state
         ws.volCtxL.clearRect(0, 0, 20, 50);
@@ -674,11 +700,17 @@ function setupAudioNodes(ws) {
         ws.volCtxR.fillRect(0,ws.volCanvasR.height,20,-(average/150)*50);
         
         // $($(ws.HTMLtable).parents('div')[1]).css("border", "8px solid red")
-        var shadowSize = (average/150) * 20;
+        
+        // UNCOMMENT THE FOLLOWING LINE TO UPDATE SHADOW RADIUS WITH VOLUME
+//        var shadowSize = (average/150) * 20;
+        var shadowSize = 10;
         var secondParam = "0 0 "+shadowSize.toString()+"px "+shadowSize.toString()+"px rgba(81, 203, 238, 1)";
         // console.log(average, shadowSize, secondParam);
         if (ws.isRunning) {
-            $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", secondParam);
+            if (counter % 1 == 0) {
+                // console.log("COUNTER ", counter, secondParam);
+                $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", secondParam);
+            };
         } else {
             // $($(ws.HTMLtable).parents('div')[1]).css("box-shadow", "0px 0px 0px 0px #fff")
             $($(wsLeft.HTMLtable).parents("div")[1]).removeAttr('style');
@@ -704,7 +736,7 @@ function doTransition(fromWS, toWS, duration) {
 }
 
 
-getAverageVolume = function(array) {
+function getAverageVolume(array) {
     var values = 0;
     var average;
 
@@ -722,7 +754,7 @@ getAverageVolume = function(array) {
 var rms_step = 2.5;
 
 
-
+// ADD GRAPH AND CANVAS TO WAVESURFER INSTANCES
 $(function() {
     wsRight.RMSgraph = document.querySelector("#graphRight");
     wsRight.EQCanvas = document.querySelector("canvasRight")
@@ -843,6 +875,7 @@ function isReady(ws) {
 
     // GET AN AVERAGE RMS ARRAY FOR GRAPHING PURPOSES
     // getRMS2(ws, 2.5 * 44100);
+    /*
     // DRAW THE LOUDNESS GRAPH
     if (ws.ws === wavesurferLeft) {
         // draw()
@@ -850,11 +883,9 @@ function isReady(ws) {
     } else {
         drawGraphR();
     }
-    
+    */
     
     // GET THE BEAT GRID
-    
-    
     
     getBPM(ws);
     getBeatArrayWorker(ws);
@@ -893,15 +924,18 @@ function isReady(ws) {
 
 function loadBlobToDeck(ws, blob) {
     // LOAD A FILE INTO A DECK AND CHANGE THE TEXT OF THE <INPUT>
-    clearGraph(ws);
+    //clearGraph(ws);
     
+    // CLEAR THE WAVEFORM DISPLAY
     ws.waveformCtx.clearRect(0,0,ws.waveformCanvas.width, ws.waveformCanvas.height);
-    
+    // LOAD THE BLOB
     ws.ws.loadBlob(blob);
-    
+    // SET THE TRACK TITLE
     var trackTitle = blob['name'];
     trackTitle = trackTitle.replace(".mp3", "");
+    // SET BUTTON TEXT TO TRACK TITLE
     setLoadBtnText(ws, trackTitle);
+    // SEND BLOB TO CURRENT TRACK
     ws.currentTrack = blob;
 }
 
@@ -1000,33 +1034,35 @@ function changeVolumeRight() {
 
 function xFade() {
     // FUNCTIONALITY FOR THE X-FADER
+    // UPDATES THE VOLUME OF THE DECKS BASED ON THE X-FADER POSITION
+    
+    // X-FADER INPUT RANGE IS 0 TO 100
+    // SO WE CONVERT TO VALUE BETWEEN -1 AND 1
     var xFadeValue = (document.querySelector("#xFader").value-50) / 50.0;
-    //console.log(xFadeValue);
+    
+    // UPDATE THE DECK VOLUMES BASED ON CROSSOVER FUNCTION
     var leftVal = Math.sqrt(0.5 * (1 - xFadeValue));
     var rightVal = Math.sqrt(0.5 * (1 + xFadeValue));
-    // console.log(leftVal, rightVal);
     wsLeft.gainNode.gain.value = leftVal;
     wsRight.gainNode.gain.value = rightVal;
+    console.log(leftVal, rightVal);
 }
+
+// BIND CHANGES IN THE X-FADER TO THE XFADE FUNCTION
+document.querySelector("#xFader").addEventListener("change", xFade);
+document.querySelector("#xFader").addEventListener("input", xFade);
 
 $('.form-group').on('click','input[type=radio]',function() {
     $(this).closest('.form-group').find('.radio-inline, .radio').removeClass('checked');
     $(this).closest('.radio-inline, .radio').addClass('checked');
 });
 
-// document.querySelector("#VolSliderL").addEventListener("change", changeVolumeLeft);
-// document.querySelector("#VolSliderR").addEventListener("change", changeVolumeRight);
-document.querySelector("#xFader").addEventListener("change", xFade);
-
-// document.querySelector("#VolSliderL").addEventListener("input", changeVolumeLeft);
-// document.querySelector("#VolSliderR").addEventListener("input", changeVolumeRight);
-document.querySelector("#xFader").addEventListener("input", xFade);
 
 // FUNCTIONALITY FOR UPLOADING TO LEFT DECK
 var leftDeckUpload = document.querySelector("#leftDeckUpload");
 leftDeckUpload.addEventListener("change", function() {
     if (leftDeckUpload.files.length > 0) {
-        clearGraph(wsLeft)
+        //clearGraph(wsLeft)
         var track = leftDeckUpload.files[0];
         loadBlobToDeck(wsLeft, track);
     }
@@ -1112,7 +1148,7 @@ function setLoadBtnText(ws, text) {
 }
 
 
-
+/*
 
 function clearGraph(ws) {
     ws.RMS_array = [];
@@ -1146,6 +1182,7 @@ function drawGraph(ws, canvas) {
         context.lineTo(x, canvas.height);
     }
     */
+/*
     
     context.strokeStyle = "#eee";
     context.stroke();
@@ -1175,71 +1212,9 @@ function drawGraph(ws, canvas) {
     
 }
 
-
-
-/* ************* */
-
-// SPOTIFY AUTHENTICATION - WORKING BUT UNNECESSARY FOR NOW
-
-/*
-document.getElementById('login-button').addEventListener('click', function() {
-
-    var client_id = '65fe5dec0aaa47e8ab365e51137a9ef9'; // Your client id
-    var redirect_uri = 'http://localhost:3000/'; // Your redirect uri
-
-    // var state = generateRandomString(16);
-
-    // localStorage.setItem(stateKey, state);
-    var scope = 'user-read-private user-read-email';
-
-    var url = 'https://accounts.spotify.com/authorize';
-    url += '?response_type=token';
-    url += '&client_id=' + encodeURIComponent(client_id);
-    //url += '&scope=' + encodeURIComponent(scope);
-    url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
-    // url += '&state=' + encodeURIComponent(state);
-
-    window.location = url;
-    token = window.location.hash
-
-    }, false);
-
-// document.querySelector("#token-button").addEventListener('click', getToken, false)
-*/
-
-// THIS RETRIEVES AN ACCESS TOKEN UPON OPENING THE PAGE
-/*
-$(function() {
-    getToken()
-    if (token === null) {
-
-        var client_id = '65fe5dec0aaa47e8ab365e51137a9ef9'; // Your client id
-        var redirect_uri = 'http://localhost:3000/'; // Your redirect uri
-
-        var url = 'https://accounts.spotify.com/authorize';
-        url += '?response_type=token';
-        url += '&client_id=' + encodeURIComponent(client_id);
-        url += '&redirect_uri=' + encodeURIComponent(redirect_uri);
-
-        window.location = url;
-        // token = window.location.hash
-    }
-})
 */
 
 
-function getToken() {
-    // GET THE LOGIN TOKEN FROM THE URL
-    var h = window.location.hash
-    console.log("HASH!")
-    console.log(h)
-    if (h!="") {
-        console.log(h.match(/^#[^&]*/))
-        token = h.match(/^#[^&]*/)
-    }
-}
-
-/********************/
 
 
 // ********************************************** //
@@ -1517,25 +1492,75 @@ var topScore;
 var temp = [];
 var counter = 0;
 var peakArray;
+var zoom = 0;
+
+function setZoom(ws) {
+    zoom = 0;
+    // FIND AND SET MAXIMUM ZOOM
+    // CANVAS APPARENTLY CANNOT EXCEED ~32400
+    // KEEP ZOOMING UNTIL LIMIT IS REACHED
+    console.log("SET ZOOM");
+    while (ws.waveformCanvas.width < 32400) {
+        console.log(zoom);
+        ws.ws.zoom(zoom);
+        zoom++;
+    }
+}
+
+var zoomDone = false;
+function setZoomTimeout(ws) {
+    // FIND AND SET MAXIMUM ZOOM
+    // CANVAS APPARENTLY CANNOT EXCEED ~32400
+    // KEEP ZOOMING UNTIL LIMIT IS REACHED
+    console.log("SET ZOOM");
+    console.log(zoom);
+    if (ws.waveformCanvas.width > 32400) {
+        zoomDone = true;
+        console.log("ZOOMDONE!!!!");
+        return
+    } else {
+        ws.ws.zoom(zoom);
+        zoom++
+        setTimeout(setZoomTimeout, 0);
+    }
+}
+
 function getBeatArrayWorker(ws) {
     // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
     
     console.log("GET BEAT ARRAY")
     
     // FIND MAXIMUM ZOOM
-    var zoom = 0;
-    ws.ws.zoom(0);
     // CANVAS APPARENTLY CANNOT EXCEED ~32400
     // KEEP ZOOMING UNTIL LIMIT IS REACHED
-    while (ws.waveformCanvas.width < 32400) {
-        ws.ws.zoom(zoom);
-        zoom++;
+    console.log("STEP 1");
+    
+    setZoom(ws);
+    /*
+    setZoomTimeout(ws);
+    
+    
+    while (true) {
+        if (zoomDone) {
+            break
+        }
     }
+    */
+    /*
+    while (ws.waveformCanvas.width < 32400) {
+        console.log(zoom);
+        ws.ws.zoom(zoom);
+        setTimeout(function() {zoom++;}, 0);
+    }
+    */
+    console.log("STEP 2");
     ws.ws.zoom(zoom-2);
     
     
     ws.peakArray = getPeaksAtThreshold(ws);
+    console.log("STEP 3");
     peakArray = ws.peakArray.filter(function(a) {return a < ws.ws.backend.buffer.length/4});
+    console.log("STEP 4");
     // var peakArray = ws.peakArray.slice(0,Math.floor(ws.peakArray.length/2));
     // peakArray = peakArray.slice(Math.floor(peakArray.length/2), Math.floor(peakArray.length/2 + peakArray.length/10));
 
@@ -1561,273 +1586,25 @@ function getBeatArrayWorker(ws) {
     // return result;
 }
 
-function getBeatArray(ws) {
-    // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
-    
-    console.log("GET BEAT ARRAY")
-    
-    // FIND MAXIMUM ZOOM
-    var zoom = 0;
-    ws.ws.zoom(0);
-    // CANVAS APPARENTLY CANNOT EXCEED ~32400
-    // KEEP ZOOMING UNTIL LIMIT IS REACHED
-    while (ws.waveformCanvas.width < 32400) {
-        ws.ws.zoom(zoom);
-        zoom++;
-    }
-    ws.ws.zoom(zoom-2);
-    
-    
-    ws.peakArray = getPeaksAtThreshold(ws);
-    peakArray = ws.peakArray.filter(function(a) {return a < ws.ws.backend.buffer.length/4});
-    // var peakArray = ws.peakArray.slice(0,Math.floor(ws.peakArray.length/2));
-    // peakArray = peakArray.slice(Math.floor(peakArray.length/2), Math.floor(peakArray.length/2 + peakArray.length/10));
-
-    var interval = BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
-    console.log("MAIN THREAD INTERVAL IS ", interval);
-    console.log(interval);
-    
-    var result = [];
-    var c = ws.ws.backend.buffer.getChannelData(0);
-    
-    var worker = new Worker("static/work.js");
-    worker.postMessage([c, ws.BPM, ws.peakArray]);
-    worker.addEventListener('message', function(e) {
-        console.log(e.data);
-        ws.analysisDone = true;
-    }, false);
-
-    
-    topScore = 0;
-    var m = 0;
-
-    counter = 0;
-    var SI = setInterval(function(ws, interval) {
-        // console.log("IT IS I ", counter);
-        for (var q = 0; q < 100; q++) {
-            
-            var progress = Math.round( (counter / ((60/ws.BPM)*44100)) * 100);
-            // console.log("HM", i / (((60/ws.BPM)*44100) * 100));
-            var progressMeter = (ws === wsLeft)? $(".progressMeter")[0] : $(".progressMeter")[1];
-            $(progressMeter).css('visibility', 'visible');
-            if (counter % 100 === 0) {
-                console.log(counter, (60/ws.BPM)*44100, progress);
-                progressMeter.innerHTML = "LOADING : " + progress.toString() + "%";
-            };
-            // $($(".progressMeter")[0]).parent()[0].hide().show(0);
-            // $($(progressMeter).parent()[0]).hide().show(0);
-            // $($(".progressMeter")[0]).hide().show(0)
-
-                // console.log("SET TIMEOUT THINGY", i);
-            // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
-            if (counter%100 === 0) {
-                console.log(counter);
-            }
-            var score = 0;
-            var n = 0;
-            temp = [];
-            for (var j = counter; j < ws.ws.backend.buffer.length/4; j += interval) {
-                // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
-                //score += c[Math.round(j)];
-                // score += findDistanceToNearestInArray(Math.round(j), peakArray)
-                for (var k = -10; k <= 10; k++) {
-                    if (peakArray.indexOf(j+k) > -1) {
-                        score++;
-                        break;
-                    }
-                }
-                temp.push(Math.round(j));
-                n++;
-            }
-            score /= n;
-            /*
-            score = temp.filter(function(obj) {
-                for (var k = -100; k < 100;) {
-                    if (peakArray.indexOf(obj+k) > -1) {
-                        return obj
-                    }
-                }
-            }).length;
-            */
-            if (score > topScore) {
-                console.log("NEW TOPSCORE");
-                console.log("score", topScore, score, temp, n, m);
-                topScore = score;
-                result = temp;
-            };
-            m++;
-            counter++;
-            if (counter >= (60/ws.BPM)*44100) {
-                // };
-                var temp2 = [];
-                for (var j = result[0]; j < ws.ws.backend.buffer.length; j += interval) {
-                    temp2.push(Math.round(j));
-                };
-                result = temp2;
-                ws.realBeatGrid = result;
-                ws.realInterval = interval;
-                ws.realFirstPeak = temp[0];
-
-                var ctx = ws.waveformCtx
-                ctx.beginPath();
-                var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
-                for (var i=0; i< peakArray.length; i++) {
-                    var x = peakArray[i];
-                    var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
-                    // console.log(i,peaksArray[i],i*scale);
-                    ctx.moveTo(y, 0);
-                    ctx.lineTo(y, ws.waveformCanvas.height);
-                    // Round the interval
-                    // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
-                }
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "#fff";
-                ctx.stroke();
-
-                ctx.beginPath();
-                var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
-                for (var i=0; i< result.length; i++) {
-                    var x = result[i];
-                    var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
-                    // console.log(i,peaksArray[i],i*scale);
-                    ctx.moveTo(y, 0);
-                    ctx.lineTo(y, ws.waveformCanvas.height);
-                    // Round the interval
-                    // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
-                }
-                ctx.strokeStyle = "#000";
-                ctx.stroke();
-
-                console.log("REALFIRSTPEAK", ws.realFirstPeak);
-                ctx.beginPath();
-                ctx.lineWidth = 5;
-                ctx.moveTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, 0);
-                ctx.lineTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, ctx.height);
-                // contextH.stroke();
-
-                console.log(getAverageRMS(ws));
-                ws.analysisDone = true;
-                clearInterval(SI);
-                $(progressMeter).css('visibility', 'hidden');
-                    return;
-            }
-        }
-    
-    },50, ws, interval);
-    
-    // return result;
-}
-
-function getBeatArrayX(ws) {
-    // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
-    
-    console.log("GET BEAT ARRAY")
-    
-    // FIND MAXIMUM ZOOM
-    var zoom = 0;
-    ws.ws.zoom(0);
-    // CANVAS APPARENTLY CANNOT EXCEED ~32400
-    // KEEP ZOOMING UNTIL LIMIT IS REACHED
-    while (ws.waveformCanvas.width < 32400) {
-        ws.ws.zoom(zoom);
-        zoom++;
-    }
-    ws.ws.zoom(zoom-2);
-    
-    
-    ws.peakArray = getPeaksAtThreshold(ws);
-    peakArray = ws.peakArray.filter(function(a) {return a < ws.ws.backend.buffer.length/4});
-    // var peakArray = ws.peakArray.slice(0,Math.floor(ws.peakArray.length/2));
-    // peakArray = peakArray.slice(Math.floor(peakArray.length/2), Math.floor(peakArray.length/2 + peakArray.length/10));
-
-    var interval = BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
-    console.log("MAIN THREAD INTERVAL IS ", interval);
-    console.log(interval);
-    
-    var result = [];
-    var c = ws.ws.backend.buffer.getChannelData(0);
-    
-    var worker = new Worker("static/work.js");
-    worker.postMessage([c, ws.BPM, ws.peakArray]);
-    worker.addEventListener('message', function(e) {
-        console.log(e.data);
-        ws.analysisDone = true;
-    }, false);
-
-    
-    topScore = 0;
-    var m = 0;
-
-    counter = 0;
-    for (var q = 0; q < interval; q++) {
-
-        
-        // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
-        if (q%100 === 0) {
-            console.log("WORKER ", q);
-        }
-        var score = 0;
-        var n = 0;
-        temp = [];
-        for (var j = q; j < c.length / 4; j += interval) {
-            // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
-            //score += c[Math.round(j)];
-            // score += findDistanceToNearestInArray(Math.round(j), peakArray)
-            for (var k = -10; k <= 10; k++) {
-                if (peakArray.indexOf(j+k) > -1) {
-                    score++;
-                    break;
-                }
-            }
-            temp.push(Math.round(j));
-            n++;
-        }
-        score /= n;
-        /*
-        score = temp.filter(function(obj) {
-            for (var k = -100; k < 100;) {
-                if (peakArray.indexOf(obj+k) > -1) {
-                    return obj
-                }
-            }
-        }).length;
-        */
-        if (score > topScore) {
-            console.log("NEW TOPSCORE");
-            console.log("score", topScore, score, temp, n, m);
-            topScore = score;
-            result = temp;
-        };
-    };
-    var temp2 = [];
-    for (var j = result[0]; j < c.length; j += interval) {
-        temp2.push(Math.round(j));
-    };
-    result = temp2;
-    console.log("I'M DONE!!!!!!")
-    return result;
-
-
-    
-    // return result;
-}
 
 function drawStuff(ws) {
     var ctx = ws.waveformCtx;
     ctx.beginPath();
-    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
-    for (var i=0; i< ws.peakArray.length; i++) {
-        var x = ws.peakArray[i];
-        var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
-        // console.log(i,peaksArray[i],i*scale);
-        ctx.moveTo(y, 0);
-        ctx.lineTo(y, ws.waveformCanvas.height);
-        // Round the interval
-        // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
-    }
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#fff";
-    ctx.stroke();
+    //var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
+    if (drawPeaks) {
+        for (var i=0; i< ws.peakArray.length; i++) {
+            var x = ws.peakArray[i];
+            var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
+            // console.log(i,peaksArray[i],i*scale);
+            ctx.moveTo(y, 0);
+            ctx.lineTo(y, ws.waveformCanvas.height);
+            // Round the interval
+            // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
+        }
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#fff";
+        ctx.stroke();
+    };
 
     ctx.beginPath();
     var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
@@ -2177,7 +1954,14 @@ function groupByConsecutiveIntegers(arr) {
     return result;
 }
 
+function toggleAutoDJ() {
+    autoDJ = !autoDJ
+}
 
+$("#autoDJButton").click(function() {
+    toggleAutoDJ();
+    $("#autoDJp").html("Auto-DJ is " + String(autoDJ? "ON" : "OFF"));
+})
 
 // var loudestSeg = 0;
 // var segVolArray = [];

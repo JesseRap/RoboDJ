@@ -1,57 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
-    
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-    
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.0.52/wavesurfer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/1.1.2/plugin/wavesurfer.regions.min.js"></script>
-    
+
     <script src="static/jquery-knob.js"></script>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.2.0/bootstrap-slider.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.2.0/css/bootstrap-slider.css">
-    
-    
-    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" type="text/css">
-    
-    <link rel="stylesheet" type='text/css' href='static/styles.css'>
-    <link rel="stylesheet" type='text/css' href='static/myStyles.css'>
 
-    
-    <style>
-    </style>
+
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" type="text/css">
+
+    <link rel="stylesheet" type='text/css' href='static/styles/styles.css'>
+    <link rel="stylesheet" type='text/css' href='static/styles/myStyles.css'>
+
 </head>
 <body>
-
     <div class="myJumbotron metal linear">
         <div class="myContainer">
             <h1 style="margin:auto">RoboDJ</h1>
-            <!--
-            <button id="login-button">LOG IN</button>
-            <button id="token-button">TOKEN</button>
--->
         </div>
     </div>
-    
+
     <div class="myContainer">
         <div class="" style="text-align:center;">
-            
-            
+
+
             {{#each deckIDs}}
-                
+
             <div class="column2" id={{this.[0]}} style="position:relative">
                 <div class="deckContainer">
-                <h2>{{@key}}</h2>    
-                
+                <h2>{{@key}}</h2>
+
                 <table id="{{this.[1]}}" style="margin: auto">
                     <tr><td>
-                        
+
                         <input type="file" class="custom-file-input" id="{{this.[2]}}" accept=".wav,.mp3,.ogg" style="margin:auto; margin-bottom:10px; background-color:#C9C9C9; height: 25px; border: 2px solid black">
-                        
+
                     </td></tr>
                     <tr><td>
                         <div class="metal linear playpause">
@@ -59,11 +51,11 @@
                         <button id="{{this.[3]}}" class="startButton"></button>
                         <button class="smallButton FF"></button>
                         </div>
-                        
+
                         <!--
                         <input type="range" id="{{this.[4]}}" value="100" style="height: 50px; margin:auto; -webkit-appearance: slider-vertical">
                         -->
-                        
+
                     </td></tr>
                     <tr><td>
                     </td></tr>
@@ -84,7 +76,7 @@
                     <tr><td>
                         <div style="width:400;margin:auto; position: relative">
                         <div id="{{this.[5]}}" class="waveform"></div>
-                            
+
                         <div style="position: relative" class="widgetContainer">
                             <div>
                             <canvas class="volMeter volMeterL" width="20px" height="50px"></canvas>
@@ -97,61 +89,57 @@
                             <canvas class="volMeter volMeterR" width="20px" height="50px"></canvas>
                                 </div>
                         </div>
-                        
-                        <canvas id="{{this.[7]}}" class="metal2 segments" height="60" style="border:1px solid black; width:100%; background-color: #fff; margin-bottom: 20px"></canvas>
+
+                        <canvas id="{{this.[7]}}" class="metal2 segments" height="60" style="border:1px solid black; width:100%; background-color: #fff; margin-bottom: 20px; display:none"></canvas>
                         </div>
-                        
-                        
-                        
-                        
-                        
+
+
+
+
+
                     </td></tr>
                     <tr><td>
-                    
+
                     </td></tr>
                 </table>
             </div>
                 </div>
-                
-            
+
+
             {{/each}}
-            
+
         </div>
+
         
-        
-        
+        <!-- THE CROSSFADER -->
+
         <div class="" style="margin-bottom:20px">
             <div class="column2 linear bottom" id={{this.[0]}} style="text-align:center">
                 <div class="" style="text-align:center; height:72px; padding:0px; display: inline-block; align-content: center">
-                
-                    <div class="xFaderDiv metal2">
-                <input type="range" id="xFader" value="0"></div>
-                </div>
-                    
-                    
-                    
-                <div id="hiddenContainer" style="display:none">
-                <div id="hiddenDiv"></div>
-                <canvas id="hiddenCanvas" syle="border:1px solid black"></canvas>
-                <button id="hiddenPlayPause">Play/Pause</button>
-            </div>
-        </div>
-    <button id="metronomeButton" class="buttonDeselected" data-slider-handle="square">Metronome ON / OFF</button>
-            <input type="file" id="autoMixUpload" class="playlist-custom-input" multiple="true" style="margin:auto">
-            <button id="loopButton">LOOP</button>
-    
-    
-    <!--
-    <div><button id="playButton">Play</button></div>
-    <div><button id="stopButton">Stop</button></div>
-    <div><button id="sampleButton">Play Sample</button></div>
-    
-    <div id="waveform"></div>
 
-    <canvas class="visualizer"></canvas>
-    
-    <canvas id="graph" height="200" width="100%" style="border:1px solid black"></canvas>
-    -->
+                    <div class="xFaderDiv metal2">
+                        <input type="range" id="xFader" value="0"></div>
+                    </div>
+
+
+
+                <div id="hiddenContainer" style="display:none">
+                    <div id="hiddenDiv"></div>
+                    <canvas id="hiddenCanvas" syle="border:1px solid black"></canvas>
+                    <button id="hiddenPlayPause">Play/Pause</button>
+                </div>
+            </div>
+            
+        <!-- METRONOME: HIDDEN -->
+        <button id="metronomeButton" class="buttonDeselected" data-slider-handle="square" style="display:none">Metronome ON / OFF</button>
+            
+            <input type="file" id="autoMixUpload" class="playlist-custom-input" multiple="true" style="margin:auto; margin-top: 15px">
+            <button id="autoDJButton">Toggle Auto-DJ</button>
+            <div><p id="autoDJp" style="color: red; font-size: 14pt;">Auto-DJ is: OFF</p></div>
+               
+            <button id="loopButton" style="display:none">LOOP</button>
+
+            
     <script src="{{audio}}"></script>
     <script src="{{tests}}"></script>
 </body>

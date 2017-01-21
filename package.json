@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/JesseRap/RoboDJ.git"
   },
-  "author": "",
+  "author": "Jesse Rappaport, Taylor Burgess",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/JesseRap/RoboDJ/issues"
