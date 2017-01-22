@@ -3,6 +3,7 @@
 var masterTempo = 140;
 var knobArray = [];
 var autoDJ = 0;
+// CHANGE DRAWPEAKS TO FALSE TO HIDE BIG PEAK LINES ON WAVEFORM
 var drawPeaks = true;
 
 
@@ -54,18 +55,6 @@ $(function(){
 });
 
 
-
-function autoXFadeHelper(fromWS, toWS) {
-    // AUTOMATES AN X-FADE FROM ONE DECK TO THE OTHER
-    autoXFade(50, (60 / masterTempo) * 32000);
-    // GET THE TARGET LOCATION
-    // LEFT DECK = 0; RIGHT DECK = 100
-    var t;
-    (toWS === wsRight)? t = 100 : t = 0;
-    
-    // SET A TIMEOUT CALL TO AUTOXFADE
-    setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / masterTempo) * 48000); autoXFade(t, (60 / masterTempo) * 32000)}, (60 / masterTempo) * 48000);
-}
 
 
 function autoXFade(target, duration) {
@@ -137,23 +126,6 @@ function autoLPSweepUp(ws, duration) {
 };
 
 
-function autoHPHelper(fromWS, toWS) {
-    // AUTOMATE AN HP SWEEP TRANSITION WITH X-FADE
-    
-    // IF THE HP FILTER IS OFF ON THE TARGET DECK, ACTIVATE IT
-    if (toWS.onFilterArray.indexOf(toWS.HP) === -1) {
-        toggleHP(toWS);
-    }
-    // X-FADE TO THE MIDPOINT
-    autoXFade(50, 5000);
-    var d = (60/masterTempo) * 32000;
-    autoHPSweepDown(toWS, d);
-    var t = (toWS === wsRight)? 100 : 0;
-    // TURN OFF THE HP AFTER THE SWEEP
-    setTimeout(function() {toggleHP(toWS)}, d);
-    setTimeout(function() {console.log("WILL XFADE TO ",t, " IN ", (60 / masterTempo) * 48000); autoXFade(t, (60 / masterTempo) * 32000)}, (60 / masterTempo) * 48000);
-    
-}
 
 var nSteps1, nSteps2, nSteps3;
 function autoHPSweepDown(ws, duration) {
@@ -264,7 +236,12 @@ var hiddenWS = WaveSurfer.create({
 
 hiddenWS.load("static/audio/metronome.wav");
 
-
+var testDeckWS = WaveSurfer.create({
+    container: "#testDeckWaveform",
+    normalize: true,
+    scrollParent: true
+});
+var wsTest = new wsObject(testDeckWS);
 
 
 // SET EVENT HANDLER FOR PLAY/PAUSE BUTTONS
@@ -658,7 +635,7 @@ function setupAudioNodes(ws) {
             
             // DO A RANDOMLY SELECTED TRANSITION IF AUTO-DJ SELECTED (DEFAULT OFF)
             if (autoDJ) {
-                doTransition(ws, wsOther, (60 / ws.BPM) * 112000);
+                transitionLogicModule.doTransition(ws, wsOther, (60 / ws.BPM) * 112000);
             };
         }
         
@@ -711,20 +688,9 @@ function setupAudioNodes(ws) {
     };
 }
 
-// AN ARRAY CONTAINING THE LIST OF POSSIBLE TRANSITIONS
-var transitionArray = [autoXFadeHelper, autoLPHelper, autoHPHelper];
 
-function doTransition(fromWS, toWS, duration) {
-    // RANDOMLY SELECT A TRANSITION AND PERFORM IT
-    
-    fromWS.hasTransitioned = true;
-    console.log("DO TRANSITION");
-    // RANDOMLY SELECT TRANSITION
-    var transition = transitionArray[Math.floor(Math.random()*transitionArray.length)];
-    console.log(transition);
-    // PERFORM THE TRANSITION
-    transition(fromWS, toWS, duration);
-}
+
+
 
 
 function getAverageVolume(array) {
@@ -866,15 +832,6 @@ function isReady(ws) {
 
     // GET AN AVERAGE RMS ARRAY FOR GRAPHING PURPOSES
     // getRMS2(ws, 2.5 * 44100);
-    /*
-    // DRAW THE LOUDNESS GRAPH
-    if (ws.ws === wavesurferLeft) {
-        // draw()
-        drawGraphL();
-    } else {
-        drawGraphR();
-    }
-    */
     
     // GET THE BEAT GRID
     
@@ -883,29 +840,31 @@ function isReady(ws) {
     var s = setInterval(function() {
         // console.log("SETINTERVAL THING", ws.analysisDone);
         if (ws.analysisDone) {
-    findSegments(ws);
-    
-    setupAudioNodes(ws);
-    
-    getFirstSegment(ws);
-    
-    var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
-    if (wsOther.isLoaded) {
-        goToBeat(ws, ws.firstSeg - 16);
-    }
-    ws.hasTransitioned = false;
-    
-    
-    
-    ws.ws.on('finish', function() {
-        console.log("TRACK ENDED");
-        playPause(ws);
-        ws.isRunning = false;
-        if (playlist.length > 0) {
-            var nextTrack = playlist.shift();
-            loadBlobToDeck(ws, nextTrack);
-        };
-    });
+            findSegments(ws);
+
+            if (ws != wsTest) {
+                setupAudioNodes(ws);
+            };
+
+            getFirstSegment(ws);
+
+            var wsOther = wsArray.slice().filter(function(a) {return a!== ws})[0];
+            if (wsOther.isLoaded) {
+                goToBeat(ws, ws.firstSeg - 16);
+            }
+            ws.hasTransitioned = false;
+
+
+
+            ws.ws.on('finish', function() {
+                console.log("TRACK ENDED");
+                playPause(ws);
+                ws.isRunning = false;
+                if (playlist.length > 0) {
+                    var nextTrack = playlist.shift();
+                    loadBlobToDeck(ws, nextTrack);
+                };
+            });
             clearInterval(s);
             drawEQBars(ws);
         }
@@ -948,6 +907,12 @@ wavesurferRight.on('ready', function () {
     isReady(wsRight);
     wsRight.isLoaded = true;
 });
+
+wsTest.ws.on("ready", function() {
+    console.log("Wavesurfer TEST");
+    isReady(wsTest);
+    wsTest.isLoaded = true;
+})
 
 
 
@@ -1012,6 +977,25 @@ rightDeckUpload.addEventListener("change", function() {
         clearGraph(wsRight);
         var track = rightDeckUpload.files[0];
         loadBlobToDeck(wsRight, track);
+    }
+});
+
+var testDeckUpload = document.querySelector("#testDeckUpload");
+testDeckUpload.addEventListener("change", function() {
+    console.log("HELLO");
+    if (testDeckUpload.files.length > 0) {
+        var track = testDeckUpload.files[0];
+        wsTest.ws.loadBlob(track);
+        wsTest.currentTrack = track;
+    };
+});
+$("#testDeckPlayBtn").click(function() {
+    if (wsTest.isRunning) {
+        wsTest.isRunning = false;
+        wsTest.ws.pause();
+    } else {
+        wsTest.isRunning = true;
+        wsTest.ws.play();
     }
 });
 
@@ -1347,101 +1331,6 @@ function findDistanceToNearestInArray(int, arr) {
     return result
 }
 
-function getBeatArray2(ws) {
-    console.log("GET BEAT ARRAY")
-    var peakArray = analysisModule.getPeaksAtThreshold(ws);
-    // NOT SURE IF THIS VALUE SHOULD BE ROUNDED OR NOT
-    // INTERVAL IS THE SAMPLE DISTANCE BETWEEN BEATS
-    
-    //var interval = Math.round(BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate));
-    var interval = analysisModule.BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
-    console.log(interval);
-    
-    // FIND MAXIMUM ZOOM
-    var zoom = 0;
-    while (ws.waveformCanvas.width < 34000) {
-        ws.ws.zoom(zoom);
-        zoom++;
-    }
-    console.log("ZOOM", zoom);
-    ws.ws.zoom(zoom-2);
-    
-    var result = [];
-    var topScore = 0;
-    var c = ws.ws.backend.buffer.getChannelData(0);
-    
-    for (var i=0; i < 30; i++) {
-        // GO THROUGH THE FIRST 30 PEAKS, MAKE A BEATGRID,
-        // AND SEE WHICH PEAK HAS THE MOST "HITS"
-        var firstPeak = peakArray[i];
-        // console.log(i, firstPeak);
-        var peakGrid = [];
-        var peakGrid2 = [];
-        
-        for (var j = firstPeak; j < ws.ws.backend.buffer.length; j += interval) {
-            peakGrid2.push(j)
-            for (var k = -10; k < 10; k++) {
-                if (peakArray.indexOf(Math.round(j+k)) > -1) {
-                    peakGrid.push(j);
-                    break
-                }
-            }
-        }
-        if (peakGrid.length > topScore) {
-            result = peakGrid2;
-            ws.realInterval = interval;
-            ws.realFirstPeak = firstPeak;
-        }
-    }
-    
-    for (var i = ws.realFirstPeak - interval; i > 0; i -= interval) {
-        result.unshift(i)
-    }
-    console.log("HI THERE");
-    console.log(result);
-    
-    /*
-    var w = 0
-    var t;
-    for (var i=-1000; i<1000; i++) {
-        var beatArrayTemp = result.map(function(a) {return a+i});
-        var s = beatArrayTemp.map(function(a) {return c[Math.round(a)]}).reduce(function(a,b) {return a+b});
-        if (s > w) {
-            w = s;
-            t = beatArrayTemp;
-        }
-    }
-    result = t;
-    
-    
-    
-    console.log(result, w);
-    */
-    
-    var ctx = ws.waveformCtx
-    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
-    for (var i=0; i< result.length; i++) {
-        var x = result[i];
-        var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
-        // console.log(i,peaksArray[i],i*scale);
-        ctx.moveTo(y, 0);
-        ctx.lineTo(y, ws.waveformCanvas.height);
-        // Round the interval
-        // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
-    }
-    ctx.strokeStyle = "#000";
-    ctx.stroke();
-    console.log("REALFIRSTPEAK", ws.realFirstPeak);
-    ctx.beginPath();
-    ctx.lineWidth = 5;
-    ctx.moveTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, 0);
-    ctx.lineTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, ctx.height);
-    // contextH.stroke();
-    
-    console.log(getAverageRMS(ws));
-    ws.realBeatGrid = result;
-    return result
-}
 
 var N = 8;
 var RMSAverages;
@@ -1541,12 +1430,9 @@ function groupByConsecutiveIntegers(arr) {
     return result;
 }
 
-function toggleAutoDJ() {
-    autoDJ = !autoDJ
-}
 
 $("#autoDJButton").click(function() {
-    toggleAutoDJ();
+    autoDJ = !autoDJ;
     $("#autoDJp").html("Auto-DJ is " + String(autoDJ? "ON" : "OFF"));
 })
 
@@ -1608,6 +1494,7 @@ function findSegments(ws) {
     ws.waveformCtx.stroke();
     
     // DRAW SEGMENTS ON BOTTOM GRAPH
+    /*
     var cnvs = ws.RMSgraph;
     var ctx = cnvs.getContext("2d")
     var scale = cnvs.width / ws.ws.backend.buffer.length;
@@ -1622,80 +1509,11 @@ function findSegments(ws) {
     // ctx.lineWidth = 2;
     console.log("STROKE");
     ctx.stroke();
+    */
     
     ws.segments = result.map(function(obj, idx) {return [obj,ws.segVolArray[idx]]}).sort(function(a,b) {return a[0]-b[0]});
     return result
 
-}
-
-var hiPass;
-function hiBeats(ws, bpm) {
-    
-    /*
-    hiPass = hiddenWS.backend.ac.createBiquadFilter();
-    hiPass.type = "highpass";
-    hiPass.frequency.value = 6000;
-    hiddenWS.backend.setFilter(hiPass);
-    */
-    
-    // Create offline context
-    var buffer = hiddenWS.backend.buffer;
-    var offlineContext = new OfflineAudioContext(1, buffer.length, buffer.sampleRate);
-
-    // Create buffer source
-    var source = offlineContext.createBufferSource();
-    source.buffer = buffer;
-
-    // Create filter
-    var filter = offlineContext.createBiquadFilter();
-    filter.type = "highpass";
-
-    // Pipe the song into the filter, and the filter into the offline context
-    source.connect(filter);
-    filter.connect(offlineContext.destination);
-
-    // Schedule the song to start playing at time:0
-    source.start(0);
-
-    // Render the song
-    offlineContext.startRendering()
-
-    // Act on the result
-    offlineContext.oncomplete = function(e) {
-      // Filtered buffer!
-      var filteredBuffer = e.renderedBuffer;
-        console.log("DOING THIS NOW");
-        
-        hiPassBeats = []
-    
-        hiddenWS.backend.buffer = filteredBuffer;
-        var f = hiddenWS.backend.buffer.getChannelData(0);
-        for (var i = 0; i < realBeatGrid.length; i++) {
-            if (f[realBeatGrid[i]] > threshold) {
-                hiPassBeats.push(realBeatGrid[i])
-            }
-        }
-        
-        var canvasH = $("#hiddenContainer wave canvas")[0];
-        var contextH = canvasH.getContext("2d");
-        var scale = canvasH.width / hiddenWS.backend.buffer.length;
-        for (var i=0; i< hiPassBeats.length; i++) {
-            var x = hiPassBeats[i];
-            var y = (x / hiddenWS.backend.buffer.length) * canvasH.width
-            // console.log(i,peaksArray[i],i*scale);
-            contextH.moveTo(y, 0);
-            contextH.lineTo(y, canvasH.height);
-            // Round the interval
-            // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
-        }
-        contextH.strokeStyle = "#890";
-        contextH.lineWidth = 3;
-        contextH.stroke();
-        
-        return hiPassBeats;
-        
-    }
-        
 }
 
 
