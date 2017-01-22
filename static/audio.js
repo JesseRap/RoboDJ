@@ -915,7 +915,7 @@ function isReady(ws) {
 
 function loadBlobToDeck(ws, blob) {
     // LOAD A FILE INTO A DECK AND CHANGE THE TEXT OF THE <INPUT>
-    //clearGraph(ws);
+    clearGraph(ws);
     
     // CLEAR THE WAVEFORM DISPLAY
     ws.waveformCtx.clearRect(0,0,ws.waveformCanvas.width, ws.waveformCanvas.height);
@@ -999,7 +999,7 @@ $('.form-group').on('click','input[type=radio]',function() {
 var leftDeckUpload = document.querySelector("#leftDeckUpload");
 leftDeckUpload.addEventListener("change", function() {
     if (leftDeckUpload.files.length > 0) {
-        //clearGraph(wsLeft)
+        clearGraph(wsLeft)
         var track = leftDeckUpload.files[0];
         loadBlobToDeck(wsLeft, track);
     }
@@ -1009,7 +1009,7 @@ leftDeckUpload.addEventListener("change", function() {
 var rightDeckUpload = document.querySelector("#rightDeckUpload");
 rightDeckUpload.addEventListener("change", function() {
     if (rightDeckUpload.files.length > 0) {
-        // clearGraph(wsRight);
+        clearGraph(wsRight);
         var track = rightDeckUpload.files[0];
         loadBlobToDeck(wsRight, track);
     }
@@ -1085,7 +1085,7 @@ function setLoadBtnText(ws, text) {
 }
 
 
-/*
+
 
 function clearGraph(ws) {
     ws.RMS_array = [];
@@ -1093,7 +1093,7 @@ function clearGraph(ws) {
 }
 
 
-
+/*
 
 function drawGraphL() {
     // Wrapper for drawing the left graph
@@ -1158,33 +1158,7 @@ function drawGraph(ws, canvas) {
 // BPM DETECTION
 
 
-
-/*
-PARAMETERS:
-- THRESHOLD         [0.9]
-- NEIGHBORRANGE     [25]
-- ROUNDING          [100]
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
 var round = 1;
-
-
-
 
 // var delay = 5000
 // var n = 1
@@ -1248,6 +1222,7 @@ function setZoom(ws) {
         ws.ws.zoom(zoom);
         zoom++;
     }
+    ws.ws.zoom(zoom - 2);
 }
 
 var zoomDone = false;
@@ -1278,26 +1253,12 @@ function getBeatArrayWorker(ws) {
     // KEEP ZOOMING UNTIL LIMIT IS REACHED
     console.log("STEP 1");
     
+    ws.waveformCtx.clearRect(0, 0, ws.waveformCtx.width, ws.waveformCtx.height);
+    
     setZoom(ws);
-    /*
-    setZoomTimeout(ws);
-    
-    
-    while (true) {
-        if (zoomDone) {
-            break
-        }
-    }
-    */
-    /*
-    while (ws.waveformCanvas.width < 32400) {
-        console.log(zoom);
-        ws.ws.zoom(zoom);
-        setTimeout(function() {zoom++;}, 0);
-    }
-    */
+
     console.log("STEP 2");
-    ws.ws.zoom(zoom-2);
+    //ws.ws.zoom(zoom-2);
     
     
     ws.peakArray = analysisModule.getPeaksAtThreshold(ws);
@@ -1315,7 +1276,7 @@ function getBeatArrayWorker(ws) {
     var c = ws.ws.backend.buffer.getChannelData(0);
     
     var worker = new Worker("static/work.js");
-    worker.postMessage([c, ws.BPM, ws.peakArray]);
+    worker.postMessage([c, ws.realInterval, ws.peakArray]);
 
     worker.addEventListener('message', function(e) {
         ws.realBeatGrid = e.data;
@@ -1332,7 +1293,7 @@ function getBeatArrayWorker(ws) {
 
 function drawStuff(ws) {
     var ctx = ws.waveformCtx;
-    //ctx.clearRect(0, 0, ctx.width, ctx.height);
+    ctx.clearRect(0, 0, ctx.width, ctx.height);
     ctx.beginPath();
     //var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
     if (drawPeaks) {
@@ -1365,143 +1326,25 @@ function drawStuff(ws) {
     ctx.stroke();
 }
 
-function getBeatArrayTIMEOUT(ws) {
-    // RETURN AN ARRAY WITH THE SAMPLE LOCATION OF EACH BEAT
-    
-    console.log("GET BEAT ARRAY")
-    
-    // FIND MAXIMUM ZOOM
-    var zoom = 0;
-    ws.ws.zoom(0);
-    // CANVAS APPARENTLY CANNOT EXCEED ~32400
-    // KEEP ZOOMING UNTIL LIMIT IS REACHED
-    while (ws.waveformCanvas.width < 32400) {
-        ws.ws.zoom(zoom);
-        zoom++;
-    }
-    ws.ws.zoom(zoom-2);
-    
-    
-    ws.peakArray = analysisModule.getPeaksAtThreshold(ws);
-    var peakArray = ws.peakArray.filter(function(a) {return a < ws.ws.backend.buffer.length/4});
-    // var peakArray = ws.peakArray.slice(0,Math.floor(ws.peakArray.length/2));
-    // peakArray = peakArray.slice(Math.floor(peakArray.length/2), Math.floor(peakArray.length/2 + peakArray.length/10));
 
-    var interval = analysisModule.BPMToInterval(ws.BPM, ws.ws.backend.buffer.sampleRate);
-    console.log(interval);
-    
-    var result = [];
-    var c = ws.ws.backend.buffer.getChannelData(0);
-    topScore = 0;
-    var m = 0;
-    
-    for (var a = 0; a < (60/ws.BPM)*44100; a+=2) {
-        // $('body').hide().show(0);
-        for (var b = 0; b < 2; b++) {
-            
-            var i = a+b;
-        setTimeout(function(i, ws, peakArray, interval) {
-            // console.log("SET TIMEOUT THINGY", i);
-        // GO THROUGH EVERY FRAME WITHIN THE DURATION OF ONE BEAT
-        if (i%100 === 0) {
-            console.log(i);
-        }
-        var score = 0;
-        var n = 0;
-        var temp = [];
-        for (var j = i; j < ws.ws.backend.buffer.length/4; j += interval) {
-            // BY FINDING WHICH BEATGRID HAS THE LOUDEST AVERAGE VOLUME
-            //score += c[Math.round(j)];
-            // score += findDistanceToNearestInArray(Math.round(j), peakArray)
-            for (var k = -20; k < 20; k++) {
-                if (peakArray.indexOf(j+k) > -1) {
-                    score++;
-                    break;
-                }
-            }
-            temp.push(Math.round(j));
-            n++;
-        }
-        score /= n;
-        /*
-        score = temp.filter(function(obj) {
-            for (var k = -100; k < 100;) {
-                if (peakArray.indexOf(obj+k) > -1) {
-                    return obj
-                }
-            }
-        }).length;
-        */
-        if (score > topScore) {
-            console.log("NEW TOPSCORE");
-            console.log("score", topScore, score, temp, n, m);
-            topScore = score;
-            result = temp;
-        };
-        m++;
-            if (i + 1 > (60/ws.BPM)*44100) {
-                var temp2 = [];
-    for (var j = result[0]; j < ws.ws.backend.buffer.length; j += interval) {
-        temp2.push(Math.round(j));
-    };
-    result = temp2;
-    ws.realBeatGrid = result;
-    ws.realInterval = interval;
-    ws.realFirstPeak = result[0];
-    
-    var ctx = ws.waveformCtx
-    ctx.beginPath();
-    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
-    for (var i=0; i< peakArray.length; i++) {
-        var x = peakArray[i];
-        var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
-        // console.log(i,peaksArray[i],i*scale);
-        ctx.moveTo(y, 0);
-        ctx.lineTo(y, ws.waveformCanvas.height);
-        // Round the interval
-        // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
-    }
-    ctx.strokeStyle = "#fff";
-    ctx.stroke();
-    
-    ctx.beginPath();
-    var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
-    for (var i=0; i< result.length; i++) {
-        var x = result[i];
-        var y = (x / ws.ws.backend.buffer.length) * ws.waveformCanvas.width
-        // console.log(i,peaksArray[i],i*scale);
-        ctx.moveTo(y, 0);
-        ctx.lineTo(y, ws.waveformCanvas.height);
-        // Round the interval
-        // peaksArray[i] = Math.floor(peaksArray[i]/100) * 100   
-    }
-    ctx.strokeStyle = "#000";
-    ctx.stroke();
-    
-    console.log("REALFIRSTPEAK", ws.realFirstPeak);
-    ctx.beginPath();
-    ctx.lineWidth = 5;
-    ctx.moveTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, 0);
-    ctx.lineTo((ws.realFirstPeak / ws.ws.backend.buffer.length)*ws.waveformCanvas.width, ctx.height);
-    // contextH.stroke();
-    
-    console.log(getAverageRMS(ws));
-                ws.analysisDone = true;
-        }}, i*5, i, ws, peakArray, interval);
-        };
-    };
-    
-    
-    // return result;
-}
 
 function findDistanceToNearestInArray(int, arr) {
     // GIVEN AN ARRAY, FIND THE DIFFERENCE BETWEEN THE INT AND
     // THE MEMBER OF THE ARRAY THAT IS CLOSEST TO IT
-    var lower = arr.filter(function(a) {return a < int}).slice(-1)[0];
-    var higher = arr.filter(function(a) {return a > int})[0];
+//    var lower = arr.filter(function(a) {return a < int}).slice(-1)[0];
+//    var higher = arr.filter(function(a) {return a > int})[0];
+    for (var i = 0; i < arr.length; i++) {
+        var current = arr[i];
+        if (current > int) {
+            var higher = current,
+                lower = arr[i-1];
+            break;
+        }
+    }
     // console.log(lower, higher);
-    return Math.min(int-lower, higher-int);
+    var result = Math.min(int-lower, higher-int);
+    console.log(result);
+    return result
 }
 
 function getBeatArray2(ws) {
@@ -1601,8 +1444,8 @@ function getBeatArray2(ws) {
 }
 
 var N = 8;
-// var RMSAverages;
-// var RMSAveragesArray;
+var RMSAverages;
+var RMSAveragesArray;
 function getAverageRMS(ws) {
     // RETURNS A LIST OF THE AVERAGE RMS'S EVERY N BEATS
     // EACH ENTRY TELLS YOU THE AVERAGE RMS UP TO THE NEXT N BEATS
@@ -1750,6 +1593,8 @@ function findSegments(ws) {
     
     // var canvasH = $("#hiddenContainer wave canvas")[0];
     // var contextH = canvasH.getContext("2d");
+    ws.waveformCtx.clearRect(0, 0, ws.waveformCtx.width, ws.waveformCtx.height);
+    //setZoom(ws);
     var scale = ws.waveformCanvas.width / ws.ws.backend.buffer.length;
     ws.waveformCtx.beginPath();
     ws.waveformCtx.lineWidth = 10;
