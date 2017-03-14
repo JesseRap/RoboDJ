@@ -1,6 +1,6 @@
 body {
     background-color: black;
-    background-image: url("../images/Space.jpg");
+    background-image: url(../images/Space.jpg);
 }
 
 .jumbotron {
@@ -12,7 +12,7 @@ body {
 }
 
 .custom-file-input::before, .playlist-custom-input::before {
-  
+
   display: inline-block;
   background: -webkit-linear-gradient(top, #f9f9f9, #e3e3e3);
   border: 1px solid #999;
@@ -26,7 +26,7 @@ body {
   font-size: 10pt;
   width: 265px;
   text-align: center;
-  
+
 }
 
 .playlist-custom-input::before {
@@ -52,9 +52,9 @@ body {
     inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
     inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
     inset hsla(0,0%,100%,.7) 0  2px 1px 7px, /* top HL */
-    
+
     hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
-    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
+    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */
 }
 
 .columnSelected {
@@ -64,17 +64,17 @@ body {
     inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
     inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
     inset hsla(0,0%,100%,.7) 0  2px 1px 7px, /* top HL */
-    
+
     hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
-    hsla(0,0%,100%,.5) 0  5px 6px 4px, /* outer HL */ 
-        
+    hsla(0,0%,100%,.5) 0  5px 6px 4px, /* outer HL */
+
         inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
     inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
     inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
     inset hsla(0,0%,100%,.7) 0  2px 1px 7px, /* top HL */
-    
+
     hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
-    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
+    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */
     /* BLUE SHADOW */
     /*0 0 5px 5px rgba(81, 203, 238, 1);*/
 }
@@ -86,16 +86,16 @@ body {
 
   color: hsla(0,0%,20%,1);
   text-shadow: hsla(0,0%,40%,.5) 0 -2px 0, hsla(0,0%,100%,.6) 0 2px 1px;
-  
+
   background-color: hsl(0,0%,90%);
   box-shadow: inset hsla(0,0%,15%,  1) 0  0px 0px 4px, /* border */
     inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
     inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
     inset hsla(0,0%,100%,.7) 0  2px 1px 7px, /* top HL */
-    
+
     hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
-    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
-  
+    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */
+
   transition: color .2s;
 }
 
@@ -104,9 +104,9 @@ body {
     inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
     inset hsla(0,0%,0%, .25) 0 -1px 0px 2px, /* bottom SD */
     inset hsla(0,0%,100%,.7) 0  2px 1px 2px, /* top HL */
-    
+
     hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
-    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
+    hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */
 }
 
 #canvasLeft, #canvasRight {
@@ -121,9 +121,9 @@ body {
   background-image: -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0)   6%, hsla(0,0%,100%, .1) 7.5%),
     -webkit-repeating-linear-gradient(left, hsla(0,0%,  0%,0) 0%, hsla(0,0%,  0%,0)   4%, hsla(0,0%,  0%,.03) 4.5%),
     -webkit-repeating-linear-gradient(left, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0) 1.2%, hsla(0,0%,100%,.15) 2.2%),
-    
-    linear-gradient(150deg, hsl(0,0%,78%)  0%, 
-    hsl(0,0%,90%) 47%, 
+
+    linear-gradient(150deg, hsl(0,0%,78%)  0%,
+    hsl(0,0%,90%) 47%,
     hsl(0,0%,78%) 53%,
     hsl(0,0%,70%)100%);
 }
@@ -150,7 +150,7 @@ body {
 
 
 #leftPlayer, #rightPlayer {
-    background-image: url('../images/black_wood_3.jpg');
+    background-image: url(../images/black_wood_3.jpg);
     background-size: contain;
     min-width: 350px;
     display: inline-block;
@@ -231,9 +231,9 @@ h1 {
     inset hsla(0,0%,15%, .8) 0 -1px 5px 4px, /* soft SD */
     inset hsla(0,0%,0%, .25) 0 -1px 0px 7px, /* bottom SD */
     inset hsla(0,0%,100%,.7) 0  2px 1px 7px, /* top HL */
-    
+
     /*hsla(0,0%, 0%,.15) 0 -5px 6px 4px, /* outer SD */
-    /*hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */ 
+    /*hsla(0,0%,100%,.5) 0  5px 6px 4px; /* outer HL */
 }
 
 .startButton {
@@ -282,9 +282,9 @@ wave > canvas {
 
 
 .xFaderDiv {
-    background-color: #000; 
-    height:25px; 
-    width: 80%; 
+    background-color: #000;
+    height:25px;
+    width: 80%;
     margin-top: 25px;
     border-radius: .2em;
     position: absolute;
@@ -331,4 +331,3 @@ wave > canvas {
     transform: translateX(-60px);
     top: 35%;
 }
-
