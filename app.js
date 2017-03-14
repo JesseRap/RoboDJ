@@ -3,7 +3,7 @@ var path = require('path');
 var expressHBs = require('express-handlebars');
 
 var app = express();  
-var port = 3000;
+var port = process.env.PORT || 3000;
 
 var deckIDs = {"DECK 1": ["leftPlayer", "leftDeckTable", "leftDeckUpload", "playButtonL", "VolSliderL", "waveformL", "canvasLeft", "graphLeft", "LPLeft", "BPLeft", "HPLeft"], "DECK 2": ["rightPlayer", "rightDeckTable", "rightDeckUpload", "playButtonR", "VolSliderR", "waveformR", "canvasRight", "graphRight", "LPRight", "BPRight", "HPRight"] };
 
