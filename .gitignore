@@ -2,7 +2,6 @@ node_modules
 *.mp3
 *.wav
 *.m3u
-*.jpg
 *.ogg
 *.map
 *.scss
