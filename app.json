@@ -1,0 +1,6 @@
+{
+  "name": "RoboDJ on Heroku",
+  "description": "A DJ app",
+  "repository": "https://github.com/JesseRap/RoboDJ",
+  "keywords": ["node", "express", "static"]
+}
